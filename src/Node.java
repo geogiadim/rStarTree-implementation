@@ -10,7 +10,6 @@ public class Node {
     Node(int level) {
         this.level = level;
         this.entries = new ArrayList<>();
-        this.blockId = RStarTree.getRootNodeBlockId();
     }
 
     // Node constructor with level and entries parameters
