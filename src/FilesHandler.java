@@ -56,9 +56,10 @@ public class FilesHandler {
             String stringRecord; // String used to read each line (row) of the csv file
 
             int maxRecordsInSingleBLock = (int) (BLOCK_SIZE / ((dataDimensions+1) * 8));
-
+            ArrayList<ArrayList<Record>> arrayOfBlocks = new ArrayList<ArrayList<Record>>() ;
             ArrayList<Record> block = new ArrayList<>();
-            int numberOfBlocks = 0;
+
+            totalBlocksInDataFile = 0;
             while ((stringRecord = csvReader.readLine()) != null)
             {
                 String[] row = stringRecord.split(DELIMITER);
@@ -117,7 +118,7 @@ public class FilesHandler {
 
 
 
-    private static void writeBlockInDataFile(ArrayList<Record> block) {
+    private static void writeBlockInDataFile(ArrayList<ArrayList<Record>> blocks) {
         try {
             FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
