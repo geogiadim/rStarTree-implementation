@@ -49,7 +49,7 @@ public class FilesHandler {
 
     // Calculates the total blocks in the datafile
     // Reads the data from the CSV files and adds it to the datafile
-    static void initializeDataFile(int dataDimensions){
+    static void initializeDataFile(int dataDimensions) throws FileNotFoundException {
         try{
             FilesHandler.dataDimensions = dataDimensions;
             BufferedReader csvReader = (new BufferedReader(new FileReader(PATH_TO_CSV)));
@@ -85,6 +85,39 @@ public class FilesHandler {
             System.out.println(numberOfBlocks);
             csvReader.close();
         }catch(Exception e){e.printStackTrace();}
+
+        //READING
+        FileInputStream fis = new FileInputStream(PATH_TO_DATA_FILE);
+        while(true){
+            ArrayList<Record> newRecords = new ArrayList<>();
+            try
+            {
+
+                ObjectInputStream ois = new ObjectInputStream(fis);
+
+                newRecords = (ArrayList) ois.readObject();
+                if(newRecords == null){
+                    break;
+                }
+                System.out.print(newRecords.getClass());
+                ois.close();
+                fis.close();
+            }
+            catch (IOException ioe)
+            {
+                ioe.printStackTrace();
+                return;
+            }
+            catch (ClassNotFoundException c)
+            {
+                System.out.println("Class not found");
+                c.printStackTrace();
+                return;
+            }
+            for (Record rec:newRecords){
+                System.out.println(rec.getRecordsCoordinates());
+            }
+        }
     }
 
 
