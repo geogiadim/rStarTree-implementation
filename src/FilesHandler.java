@@ -74,10 +74,7 @@ public class FilesHandler {
                     writeBlockInDataFile(block);
                     block = new ArrayList<>();
                     numberOfBlocks++;
-                    if (numberOfBlocks == 2)
-                        break;
                 }
-
 
             }
 
