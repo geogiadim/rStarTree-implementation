@@ -71,67 +71,65 @@ public class FilesHandler {
                 block.add(new Record(idRecord,recordsCoordinates));
 
                 if (block.size() == maxRecordsInSingleBLock ){
-                    writeBlockInDataFile(block);
+                    //writeBlockInDataFile(block);
+                    arrayOfBlocks.add(block);
                     block = new ArrayList<>();
-                    numberOfBlocks++;
+                    totalBlocksInDataFile++;
                 }
-
             }
 
             if (block.size() > 0 ){
-                writeBlockInDataFile(block);
-                numberOfBlocks++;
+                //writeBlockInDataFile(block);
+                arrayOfBlocks.add(block);
+                totalBlocksInDataFile++;
             }
-            System.out.println(numberOfBlocks);
+            System.out.println(totalBlocksInDataFile);
+            writeBlockInDataFile(arrayOfBlocks);
             csvReader.close();
-        }catch(Exception e){e.printStackTrace();}
-
-        //READING
-        FileInputStream fis = new FileInputStream(PATH_TO_DATA_FILE);
-        while(true){
-            ArrayList<Record> newRecords = new ArrayList<>();
-            try
-            {
-
-                ObjectInputStream ois = new ObjectInputStream(fis);
-
-                newRecords = (ArrayList) ois.readObject();
-                if(newRecords == null){
-                    break;
-                }
-                System.out.print(newRecords.getClass());
-                ois.close();
-                fis.close();
-            }
-            catch (IOException ioe)
-            {
-                ioe.printStackTrace();
-                return;
-            }
-            catch (ClassNotFoundException c)
-            {
-                System.out.println("Class not found");
-                c.printStackTrace();
-                return;
-            }
-            for (Record rec:newRecords){
-                System.out.println(rec.getRecordsCoordinates());
-            }
+        }catch(Exception e){
+            e.printStackTrace();
         }
     }
+
+    static void readBlockInDataFile (int blockId){
+        ArrayList<ArrayList<Record>> newRecords;
+        try
+        {
+            FileInputStream fis = new FileInputStream(PATH_TO_DATA_FILE);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            newRecords = (ArrayList) ois.readObject();
+            ois.close();
+            fis.close();
+            ArrayList<Record> block = newRecords.get(blockId);
+            for (Record rec: block){
+                System.out.println(rec.getRecordsCoordinates());
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        catch (ClassNotFoundException c) {
+            System.out.println("Class not found");
+            c.printStackTrace();
+        }
+    }
+
 
 
     private static void writeBlockInDataFile(ArrayList<Record> block) {
         try {
             FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(block);
+            oos.writeObject(blocks);
             oos.close();
             fos.close();
         }
         catch (IOException ioe){
             ioe.printStackTrace();
         }
+    }
+
 //        try {
 //            byte[] recordInBytes = serialize(block);
 //            byte[] goodPutLengthInBytes = serialize(recordInBytes.length);
@@ -146,14 +144,14 @@ public class FilesHandler {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-    }
 
-    private static byte[] serialize(Object obj) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream(out);
-        os.writeObject(obj);
-        return out.toByteArray();
-    }
+
+//    private static byte[] serialize(Object obj) throws IOException {
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//        ObjectOutputStream os = new ObjectOutputStream(out);
+//        os.writeObject(obj);
+//        return out.toByteArray();
+//    }
 }
 
 

@@ -13,11 +13,11 @@ public class Main {
         do{
             System.out.println("Input dimensions (must be higher than zero): ");
             dimensions = scan.nextInt();
+            if (dimensions <= 0 )
+                System.out.println("Wrong input! Try again: ");
          }while(dimensions <= 0);
 
-        FilesHandler fh = new FilesHandler();
-        fh.initializeDataFile(dimensions);
-
-
+        FilesHandler.initializeDataFile(dimensions);
+        FilesHandler.readBlockInDataFile(95);
     }
 }
