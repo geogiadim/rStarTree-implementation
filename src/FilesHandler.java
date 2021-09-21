@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class FilesHandler {
     private static final String DELIMITER = ",";
@@ -65,7 +64,7 @@ public class FilesHandler {
             // initialize the block array that contains records
             ArrayList<Record> block = new ArrayList<>();
             // set 0 value in total blocks variable
-            FilesHandler.totalBlocksInDataFile = 0;
+            FilesHandler.totalBlocksInDataFile = 1;
             // reading csv file
             while ((stringRecord = csvReader.readLine()) != null)
             {
@@ -106,37 +105,13 @@ public class FilesHandler {
      * */
     private static int calculateMaxRecordsInSingleBLock(){
         ArrayList<Record> block = new ArrayList<>();
-
-//        for (recCounter=0; recCounter < Integer.MAX_VALUE; recCounter++){
-//            ArrayList<Double> coordinates = new ArrayList<>();
-//            for (int d=0; d < dataDimensions; d++){
-//                coordinates.add(0.0);
-//            }
-//            Record record = new Record(0,coordinates);
-//            block.add(record);
-//
-//            // create byte arrays in order to store the serialized records
-//            byte[] recordToBytes = new byte[0];
-//            byte[] realRecordBytes = new byte[0];
-//            try {
-//                // serialize records to be able to be written in the .dat file
-//                recordToBytes = serialize(block);
-//                realRecordBytes = serialize(recordToBytes.length);
-//            } catch (IOException e){
-//                e.printStackTrace();
-//            }
-//            if (realRecordBytes.length + recordToBytes.length > BLOCK_SIZE)
-//                break;
-//        }
-
         int recCounter = 0;
-        boolean flag= true;
         do{
             //create dummy records
-            ArrayList<Double> coordinates = new ArrayList<Double>(Collections.nCopies(dataDimensions, 0.0));
-//            for (int d=0; d < dataDimensions; d++){
-//                coordinates.add(0.0);
-//            }
+            ArrayList<Double> coordinates = new ArrayList<>();
+            for (int d=0; d < dataDimensions; d++){
+                coordinates.add(0.0);
+            }
             Record record = new Record(0,coordinates);
             block.add(record);
 
@@ -151,10 +126,11 @@ public class FilesHandler {
                 e.printStackTrace();
             }
             if (realRecordBytes.length + recordToBytes.length > BLOCK_SIZE){
-                flag = false;
+                //flag = false;
+                break;
             }
             recCounter ++;
-        }while (flag);
+        }while (true);
 
         return recCounter;
     }
@@ -210,7 +186,7 @@ public class FilesHandler {
             bos.write(newBlock);
 
             //update metadata block
-            writeMetaDataBlock();
+            //writeMetaDataBlock();
         } catch (Exception e) {
             e.printStackTrace();
         }
