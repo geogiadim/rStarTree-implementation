@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class FilesHandler {
     private static final String DELIMITER = ",";
@@ -68,8 +69,10 @@ public class FilesHandler {
             // reading csv file
             while ((stringRecord = csvReader.readLine()) != null)
             {
-                String[] row = stringRecord.split(DELIMITER);
+                String[] row = stringRecord.split(DELIMITER); //Splitting the different attributes of the dataset
+
                 long idRecord = Long.parseLong(row[0]);
+                //Parsing the latitude and longitude to an arraylist
                 ArrayList<Double> recordsCoordinates = new ArrayList<>();
                 for (int k=1; k < row.length ; k++ ){
                     recordsCoordinates.add(Double.parseDouble(row[k]));
@@ -91,14 +94,16 @@ public class FilesHandler {
                 writeBlockInDataFile(block);
                 totalBlocksInDataFile++;
             }
-            //System.out.println(totalBlocksInDataFile);
-            //writeBlockInDataFile(arrayOfBlocks);
+            System.out.println(totalBlocksInDataFile + " total blocks");
             csvReader.close();
         }catch(Exception e){
             e.printStackTrace();
         }
     }
 
+    /**
+     *
+     * */
     private static int calculateMaxRecordsInSingleBLock(){
         ArrayList<Record> block = new ArrayList<>();
 
@@ -211,6 +216,9 @@ public class FilesHandler {
         }
     }
 
+    /**
+     *
+     * */
     static void readBlockInDataFile (int blockId){
         ArrayList<ArrayList<Record>> newRecords;
         try
