@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class FilesHandler {
     private static final String DELIMITER = ",";
@@ -184,9 +185,13 @@ public class FilesHandler {
             FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             bos.write(newBlock);
+            bos.close();
+            bos.flush();
+            fos.close();
+            fos.flush();
 
             //update metadata block
-            //writeMetaDataBlock();
+            writeMetaDataBlock();
         } catch (Exception e) {
             e.printStackTrace();
         }
