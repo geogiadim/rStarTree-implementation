@@ -11,6 +11,7 @@ public class FilesHandler {
     private static int dataDimensions;
 
     private static int totalBlocksInDataFile;
+    private static int maxRecordsInSingleBLock;
     private static int totalBlocksInIndexFile;
 
     static String getPathToCsv() {
@@ -45,6 +46,7 @@ public class FilesHandler {
         return totalBlocksInDataFile;
     }
 
+    static int getMaxRecordsInSingleBLock(){return maxRecordsInSingleBLock;}
 
 
     // Calculates the total blocks in the datafile
@@ -55,8 +57,10 @@ public class FilesHandler {
             BufferedReader csvReader = (new BufferedReader(new FileReader(PATH_TO_CSV)));
             String stringRecord; // String used to read each line (row) of the csv file
 
-            int maxRecordsInSingleBLock = (int) (BLOCK_SIZE / ((dataDimensions+1) * 8));
-            ArrayList<ArrayList<Record>> arrayOfBlocks = new ArrayList<ArrayList<Record>>() ;
+            maxRecordsInSingleBLock = (int) (BLOCK_SIZE / ((dataDimensions+1) * 8));
+            //maxRecordsInSingleBLock = calculateMaxRecordsInSingleBLock();
+            System.out.println(maxRecordsInSingleBLock + " max records");
+            //ArrayList<ArrayList<Record>> arrayOfBlocks = new ArrayList<ArrayList<Record>>() ;
             ArrayList<Record> block = new ArrayList<>();
 
             totalBlocksInDataFile = 0;
@@ -72,24 +76,97 @@ public class FilesHandler {
                 block.add(new Record(idRecord,recordsCoordinates));
 
                 if (block.size() == maxRecordsInSingleBLock ){
-                    //writeBlockInDataFile(block);
-                    arrayOfBlocks.add(block);
+                    writeBlockInDataFile(block);
+                    //arrayOfBlocks.add(block);
                     block = new ArrayList<>();
                     totalBlocksInDataFile++;
+                    break;
                 }
             }
 
             if (block.size() > 0 ){
-                //writeBlockInDataFile(block);
-                arrayOfBlocks.add(block);
+                writeBlockInDataFile(block);
+                //arrayOfBlocks.add(block);
                 totalBlocksInDataFile++;
             }
-            System.out.println(totalBlocksInDataFile);
-            writeBlockInDataFile(arrayOfBlocks);
+            //System.out.println(totalBlocksInDataFile);
+            //writeBlockInDataFile(arrayOfBlocks);
             csvReader.close();
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    private static int calculateMaxRecordsInSingleBLock(){
+        ArrayList<Record> block = new ArrayList<>();
+
+        int maxRecordsInSingleBLock = (int) (BLOCK_SIZE / ((dataDimensions+1) * 8));
+        int remainingBytesInBlock = (int) (BLOCK_SIZE % ((dataDimensions+1) * 8 ));
+
+        int recCounter;
+        for (recCounter=0; recCounter < Integer.MAX_VALUE; recCounter++){
+            ArrayList<Double> coordinates = new ArrayList<>();
+            for (int d=0; d < dataDimensions; d++){
+                coordinates.add(0.0);
+            }
+            Record record = new Record(0,coordinates);
+            block.add(record);
+
+            byte[] recordToBytes = new byte[0];
+            byte[] goodPutLengthInBytes = new byte[0];
+            try {
+                recordToBytes = serialize(block);
+                System.out.println(recordToBytes.length);
+                goodPutLengthInBytes = serialize(recordToBytes.length);
+                System.out.println(goodPutLengthInBytes.length);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+            if (goodPutLengthInBytes.length + recordToBytes.length > BLOCK_SIZE)
+                break;
+        }
+        return recCounter;
+    }
+
+    // Used to serializable a serializable Object to byte array
+    private static byte[] serialize(Object obj) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream os = new ObjectOutputStream(out);
+        os.writeObject(obj);
+        return out.toByteArray();
+    }
+
+    private static void writeBlockInDataFile(ArrayList<Record> block) {
+        try {
+
+            FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            //oos.writeObject(block);
+            for (Record record : block) {
+                oos.writeLong(record.getSlotId());
+                for (Double coordinate : record.getRecordsCoordinates()) {
+                    oos.writeDouble(coordinate);
+                }
+            }
+            oos.close();
+            fos.close();
+        }
+        catch (IOException ioe){
+            ioe.printStackTrace();
+        }
+//        try {
+//            byte[] recordInBytes = serialize(block);
+//            byte[] goodPutLengthInBytes = serialize(recordInBytes.length);
+//            byte[] blockToBytes = new byte[BLOCK_SIZE];
+//            System.arraycopy(goodPutLengthInBytes, 0, blockToBytes, 0, goodPutLengthInBytes.length);
+//            System.arraycopy(recordInBytes, 0, blockToBytes, goodPutLengthInBytes.length, recordInBytes.length);
+//
+//            FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
+//            BufferedOutputStream bout = new BufferedOutputStream(fos);
+//            bout.write(blockToBytes);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     static void readBlockInDataFile (int blockId){
@@ -118,18 +195,38 @@ public class FilesHandler {
 
 
 
-    private static void writeBlockInDataFile(ArrayList<ArrayList<Record>> blocks) {
-        try {
-            FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(blocks);
-            oos.close();
-            fos.close();
-        }
-        catch (IOException ioe){
-            ioe.printStackTrace();
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //        try {
 //            byte[] recordInBytes = serialize(block);

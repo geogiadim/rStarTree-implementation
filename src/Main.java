@@ -18,6 +18,6 @@ public class Main {
          }while(dimensions <= 0);
 
         FilesHandler.initializeDataFile(dimensions);
-        FilesHandler.readBlockInDataFile(95);
+
     }
 }
