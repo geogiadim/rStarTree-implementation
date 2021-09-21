@@ -167,6 +167,30 @@ public class FilesHandler {
         }
     }
 
+    static ArrayList<Integer> readMetaDataBlock(){
+        try {
+            RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
+            FileInputStream fis = new FileInputStream(raf.getFD());
+            BufferedInputStream bis = new BufferedInputStream(fis);
+
+            byte[] block = new byte[BLOCK_SIZE];
+            int result = bis.read(block,0, BLOCK_SIZE);
+            System.out.println(result + "read metadata block");
+
+            byte[] realMetadataBytes = serialize(new Random().nextInt()); // Serializing an integer ir order to get the size of goodPutLength in bytes
+            System.arraycopy(block, 0, realMetadataBytes, 0, realMetadataBytes.length);
+
+            byte[] dataInBlock = new byte[(Integer)deserialize(realMetadataBytes)];
+            System.arraycopy(block, realMetadataBytes.length, dataInBlock, 0, dataInBlock.length);
+
+            return (ArrayList<Integer>)deserialize(dataInBlock);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      *
      * */
@@ -200,28 +224,31 @@ public class FilesHandler {
     /**
      *
      * */
-    static void readBlockInDataFile (int blockId){
-        ArrayList<ArrayList<Record>> newRecords;
-        try
-        {
-            FileInputStream fis = new FileInputStream(PATH_TO_DATA_FILE);
-            ObjectInputStream ois = new ObjectInputStream(fis);
+    static ArrayList<Record>  readBlockInDataFile (int blockId){
+        try {
+            RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
+            FileInputStream fis = new FileInputStream(raf.getFD());
+            BufferedInputStream bis = new BufferedInputStream(fis);
 
-            newRecords = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-            ArrayList<Record> block = newRecords.get(blockId);
-            for (Record rec: block){
-                System.out.println(rec.getRecordsCoordinates());
-            }
+            raf.seek(blockId*BLOCK_SIZE);
 
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            byte[] block = new byte[BLOCK_SIZE];
+
+            int result = bis.read(block,0, BLOCK_SIZE);
+            System.out.println(result + "read block in data file");
+
+            byte[] realDataBytes = serialize(new Random().nextInt()); // Serializing an integer ir order to get the size of goodPutLength in bytes
+            System.arraycopy(block, 0, realDataBytes, 0, realDataBytes.length);
+
+            byte[] dataInBlock = new byte[(Integer)deserialize(realDataBytes)];
+            System.arraycopy(block, realDataBytes.length, dataInBlock, 0, dataInBlock.length);
+
+            return (ArrayList<Record>)deserialize(dataInBlock);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch (ClassNotFoundException c) {
-            System.out.println("Class not found");
-            c.printStackTrace();
-        }
+        return null;
     }
 
 
