@@ -1,7 +1,4 @@
-import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -9,7 +6,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         userInput();
         printMetaData();
-        printSpecificBLock(34);
+        printSpecificBLock(1);
         RStarTree tree = new RStarTree();
 
     }
@@ -17,7 +14,8 @@ public class Main {
         Scanner scan = new Scanner(System.in);
         int dimensions;
         do{
-            System.out.println("Input dimensions (must be higher than zero): ");
+            System.out.println("Dimensions must be equal to number of coordinates in your csv file.");
+            System.out.println("Give data dimensions: ");
             dimensions = scan.nextInt();
             if (dimensions <= 0 )
                 System.out.println("Wrong input! Try again: ");
@@ -31,8 +29,18 @@ public class Main {
         metadata = FilesHandler.readMetaDataBlock();
 
         if (metadata != null){
+            int i = 0;
+            System.out.println("Metadata that are stored in first block of the .dat file: ");
             for (Integer element : metadata ) {
-                System.out.println("meta data element: " + element);
+                if (i == 0)
+                    System.out.println("Data dimensions: " + element);
+                else if (i == 1)
+                    System.out.println("Size of each block in data file: " + element);
+                else if (i == 2)
+                    System.out.println("Total blocks inside data file: " + element);
+                else if (i == 3)
+                    System.out.println("Max num of records that fit in a single block: " + element);
+                i++;
             }
         }else {
             System.out.println("null meta data");
@@ -52,18 +60,4 @@ public class Main {
             System.out.println("null records");
         }
     }
-
-
-
-//    private static void sth(){
-//        try {
-//            byte[] blockToBytes = new byte[32 * 1024];
-//
-//            FileOutputStream fos = new FileOutputStream("./files/small-datafile.dat",true);
-//            BufferedOutputStream bout = new BufferedOutputStream(fos);
-//            bout.write(blockToBytes);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

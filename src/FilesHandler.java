@@ -1,4 +1,6 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,11 +10,11 @@ public class FilesHandler {
     private static final String PATH_TO_DATA_FILE = "./files/small-datafile.dat";
     private static final String PATH_TO_INDEX_FILE = "./files/small-indexfile.dat";
 
-    private static final int BLOCK_SIZE = 2 * 1024;
     private static int dataDimensions;
-
+    private static final int BLOCK_SIZE = 2 * 1024;
     private static int totalBlocksInDataFile;
     private static int maxRecordsInSingleBLock;
+
     private static int totalBlocksInIndexFile;
 
     static String getPathToCsv() {
@@ -50,10 +52,13 @@ public class FilesHandler {
     static int getMaxRecordsInSingleBLock(){return maxRecordsInSingleBLock;}
 
     /**
-     *
-     **/
-    static void initializeDataFile(int dataDimensions) throws FileNotFoundException {
+     * initialize the data file
+     */
+    static void initializeDataFile(int dataDimensions) {
         try{
+            // delete data file if already exist from previous executions
+            Files.deleteIfExists(Paths.get(PATH_TO_DATA_FILE));
+
             FilesHandler.dataDimensions = dataDimensions;
             writeMetaDataBlock();
             // open buffer reader
@@ -61,7 +66,6 @@ public class FilesHandler {
             String stringRecord; // String used to read each line (row) of the csv file
             // calculate max records that can fit in a single block
             FilesHandler.maxRecordsInSingleBLock = calculateMaxRecordsInSingleBLock();
-            System.out.println(maxRecordsInSingleBLock + " max records");
             // initialize the block array that contains records
             ArrayList<Record> block = new ArrayList<>();
             // set 0 value in total blocks variable
@@ -94,7 +98,6 @@ public class FilesHandler {
                 writeBlockInDataFile(block);
                 totalBlocksInDataFile++;
             }
-            System.out.println(totalBlocksInDataFile + " total blocks");
             csvReader.close();
         }catch(Exception e){
             e.printStackTrace();
@@ -102,8 +105,8 @@ public class FilesHandler {
     }
 
     /**
-     *
-     * */
+     * calculate max records that fit in single block
+     */
     private static int calculateMaxRecordsInSingleBLock(){
         ArrayList<Record> block = new ArrayList<>();
         int recCounter = 0;
@@ -127,7 +130,6 @@ public class FilesHandler {
                 e.printStackTrace();
             }
             if (realRecordBytes.length + recordToBytes.length > BLOCK_SIZE){
-                //flag = false;
                 break;
             }
             recCounter ++;
@@ -137,16 +139,15 @@ public class FilesHandler {
     }
 
     /**
-     *
-     *
+     * Write metadata in first block of data file
      **/
     static void writeMetaDataBlock(){
         try {
             // Properties of metadata
             ArrayList<Integer> metadata = new ArrayList<>();
             metadata.add(dataDimensions);
-            metadata.add(totalBlocksInDataFile);
             metadata.add(BLOCK_SIZE);
+            metadata.add(totalBlocksInDataFile);
             metadata.add(maxRecordsInSingleBLock);
 
             //Serializing metadata to be able to be written in the .dat file
@@ -167,15 +168,20 @@ public class FilesHandler {
         }
     }
 
+    /**
+     * Read the first block from data file that contains metadata
+     */
     static ArrayList<Integer> readMetaDataBlock(){
         try {
+            // open input streams in order to read the file
             RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
             FileInputStream fis = new FileInputStream(raf.getFD());
             BufferedInputStream bis = new BufferedInputStream(fis);
 
+            // read the block from data file and write it in the new initialized block
             byte[] block = new byte[BLOCK_SIZE];
+            // read the block from data file and write it in the new initialized block
             int result = bis.read(block,0, BLOCK_SIZE);
-            System.out.println(result + "read metadata block");
 
             byte[] realMetadataBytes = serialize(new Random().nextInt()); // Serializing an integer ir order to get the size of goodPutLength in bytes
             System.arraycopy(block, 0, realMetadataBytes, 0, realMetadataBytes.length);
@@ -192,8 +198,8 @@ public class FilesHandler {
     }
 
     /**
-     *
-     * */
+     * write a block with records in data file
+     */
     private static void writeBlockInDataFile(ArrayList<Record> block) {
         try {
             //Serializing data to be able to be written in the .dat file
@@ -222,28 +228,33 @@ public class FilesHandler {
     }
 
     /**
-     *
-     * */
+     * Read a specific block from data file depending on given block id
+     */
     static ArrayList<Record>  readBlockInDataFile (int blockId){
         try {
+            // check if block id number is valid
+            if (blockId < 1 || blockId > totalBlocksInDataFile)
+                throw new Exception("You try to read block that does not exist.");
+            // open input streams in order to read the file
             RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
             FileInputStream fis = new FileInputStream(raf.getFD());
             BufferedInputStream bis = new BufferedInputStream(fis);
 
-            raf.seek(blockId*BLOCK_SIZE);
+            // go to demanded block inside data file
+            raf.seek((long) blockId*BLOCK_SIZE);
 
+            // initialize a block
             byte[] block = new byte[BLOCK_SIZE];
-
+            // read the block from data file and write it in the new initialized block
             int result = bis.read(block,0, BLOCK_SIZE);
-            System.out.println(result + "read block in data file");
 
-            byte[] realDataBytes = serialize(new Random().nextInt()); // Serializing an integer ir order to get the size of goodPutLength in bytes
+            byte[] realDataBytes = serialize(new Random().nextInt());
             System.arraycopy(block, 0, realDataBytes, 0, realDataBytes.length);
 
             byte[] dataInBlock = new byte[(Integer)deserialize(realDataBytes)];
             System.arraycopy(block, realDataBytes.length, dataInBlock, 0, dataInBlock.length);
 
-            return (ArrayList<Record>)deserialize(dataInBlock);
+            return (ArrayList<Record>) deserialize(dataInBlock);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -251,113 +262,22 @@ public class FilesHandler {
         return null;
     }
 
-
     /**
-     *
-     **/
+     * Serialize data in order to write them in dat file
+     */
     private static byte[] serialize(Object obj) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream(out);
-        os.writeObject(obj);
-        return out.toByteArray();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(obj);
+        return bos.toByteArray();
     }
 
     /**
-     *
-     * */
+     * Deserialize data in order to read them from dat file
+     */
     private static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream in = new ByteArrayInputStream(data);
-        ObjectInputStream is = new ObjectInputStream(in);
-        return is.readObject();
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        return ois.readObject();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//        try {
-//            byte[] recordInBytes = serialize(block);
-//            byte[] goodPutLengthInBytes = serialize(recordInBytes.length);
-//            byte[] blockInDataFile = new byte[BLOCK_SIZE];
-//            System.arraycopy(goodPutLengthInBytes, 0, blockInDataFile, 0, goodPutLengthInBytes.length);
-//            System.arraycopy(recordInBytes, 0, blockInDataFile, goodPutLengthInBytes.length, recordInBytes.length);
-//
-//            FileOutputStream fos = new FileOutputStream(PATH_TO_DATA_FILE,true);
-//            BufferedOutputStream bout = new BufferedOutputStream(fos);
-//            bout.write(blockInDataFile);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
-
-//    private static byte[] serialize(Object obj) throws IOException {
-//        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//        ObjectOutputStream os = new ObjectOutputStream(out);
-//        os.writeObject(obj);
-//        return out.toByteArray();
-//    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//            if ( dataFile.exists() )
-//            {
-//                ArrayList<Integer> dataFileMetaData = readMetaDataBlock(PATH_TO_DATA_FILE);
-//                if (dataFileMetaData == null)
-//                    throw new IllegalStateException("Does not found metadata");
-//
-//                FilesHandler.dataDimensions = dataFileMetaData.get(0);
-//                if (getDataDimensions()  <= 0)
-//                    throw new IllegalStateException("Negative number of dimensions is not accepted!");
-//
-//                if (dataFileMetaData.get(1) != BLOCK_SIZE)
-//                    throw new IllegalStateException("Wrong block size");
-//
-//                FilesHandler.totalBlocksInDataFile = dataFileMetaData.get(2);
-//                if (getTotalBlocksInDataFile() < 0)
-//                    throw new IllegalStateException("Negative number of blocks is not accepted!");
-//            }
