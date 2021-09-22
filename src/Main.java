@@ -2,15 +2,24 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Main Class off the program
+ */
 public class Main {
-    public static void main(String[] args) throws FileNotFoundException {
-        userInput();
+    public static void main(String[] args) {
+        askDimensionsInput();
+        // testing
         printMetaData();
         printSpecificBLock(1);
-        RStarTree tree = new RStarTree();
+        // end testing
 
+        RStarTree tree = new RStarTree();
     }
-    private static void userInput() throws FileNotFoundException {
+
+    /**
+     * ask user to give dimensions of data and initialize data file
+     */
+    private static void askDimensionsInput() {
         Scanner scan = new Scanner(System.in);
         int dimensions;
         do{
@@ -24,6 +33,9 @@ public class Main {
         FilesHandler.initializeDataFile(dimensions);
     }
 
+    /**
+     * print meta data of data file
+     */
     private static void printMetaData(){
         ArrayList<Integer> metadata;
         metadata = FilesHandler.readMetaDataBlock();
@@ -47,10 +59,12 @@ public class Main {
         }
     }
 
+    /**
+     * Print all records that includes a specific block
+     */
     private static void printSpecificBLock(int blockId){
         ArrayList<Record> data;
         data = FilesHandler.readBlockInDataFile(blockId);
-
 
         if (data!= null){
             for (Record record: data){

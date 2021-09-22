@@ -1,6 +1,9 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * This class represent a point in the k-dimensional space
+ */
 public class Record implements Serializable {
     private long slotId;
     private ArrayList<Double> recordsCoordinates;

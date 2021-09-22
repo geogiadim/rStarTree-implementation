@@ -4,6 +4,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ *  This class handles all the read/write processes in/ from data and index file .
+ */
 public class FilesHandler {
     private static final String DELIMITER = ",";
     private static final String PATH_TO_CSV = "./files/small-peraia.csv";
@@ -16,40 +19,18 @@ public class FilesHandler {
     private static int maxRecordsInSingleBLock;
 
     private static int totalBlocksInIndexFile;
+    private static int levelsOfRStarTree;
 
-    static String getPathToCsv() {
-        return PATH_TO_CSV;
-    }
-
-    static String getPathToDataFile(){
-        return PATH_TO_DATA_FILE;
-    }
-
-    static String getPathToIndexFile(){
-        return PATH_TO_INDEX_FILE;
-    }
-
-    static String getDelimiter() {
-        return DELIMITER;
-    }
-
-    static int getBlockSize(){
-        return BLOCK_SIZE;
-    }
-
-    static int getDataDimensions() {
-        return dataDimensions;
-    }
-
-    static int getTotalBlocksInIndexFile() {
-        return totalBlocksInIndexFile;
-    }
-
-    static int getTotalBlocksInDataFile(){
-        return totalBlocksInDataFile;
-    }
-
+    static String getDelimiter() {return DELIMITER;}
+    static String getPathToCsv() {return PATH_TO_CSV;}
+    static String getPathToDataFile(){return PATH_TO_DATA_FILE;}
+    static String getPathToIndexFile(){return PATH_TO_INDEX_FILE;}
+    static int getDataDimensions() {return dataDimensions;}
+    static int getBlockSize(){return BLOCK_SIZE;}
+    static int getTotalBlocksInDataFile(){return totalBlocksInDataFile;}
     static int getMaxRecordsInSingleBLock(){return maxRecordsInSingleBLock;}
+    static int getTotalBlocksInIndexFile() {return totalBlocksInIndexFile;}
+    static int getLevelsOfRStarTree(){return levelsOfRStarTree;}
 
     /**
      * initialize the data file
@@ -141,7 +122,7 @@ public class FilesHandler {
     /**
      * Write metadata in first block of data file
      **/
-    static void writeMetaDataBlock(){
+    private static void writeMetaDataBlock(){
         try {
             // Properties of metadata
             ArrayList<Integer> metadata = new ArrayList<>();
