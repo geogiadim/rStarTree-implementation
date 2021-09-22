@@ -22,11 +22,42 @@ public class Node implements Serializable {
         this.nodeRecords = nodeRecords;
     }
 
-    public ArrayList<NodeRecord> getNodeRecords(){
-        return nodeRecords;
+    public ArrayList<NodeRecord> getNodeRecords(){return nodeRecords;}
+    public int getLevelInRstarTree() {return levelInRstarTree;}
+    public long getNodeId(){ return nodeId;}
+
+    public static int getMaxNodeRecords() { return MAX_NODE_RECORDS; }
+    public static int getMinNodeRecords() { return MIN_NODE_RECORDS; }
+
+    // Calculates and return an integer which represents the maximum number of records a block of BLOCK_SIZE can have
+    public static int calculateMaxRecordsInNode() {
+        ArrayList<NodeRecord> node = new ArrayList<>();
+        long blockSize = FilesHandler.getBlockSize();
+        int totalRecordsInNode = 0;
+        do {
+            ArrayList<Bounds> boundsForEachDimension = new ArrayList<>();
+            for (int d = 0; d < FilesHandler.getDataDimensions(); d++)
+                boundsForEachDimension.add(new Bounds(0.0, 0.0));
+
+            NodeRecord nodeRecord = new NodeRecord( boundsForEachDimension, new Random().nextLong(), new Random().nextLong()); //leaf node records hold more fields than regular noderecords
+            node.add(nodeRecord);
+            byte[] nodeToBytes = new byte[0];
+            byte[] realNodeBytes = new byte[0];
+            try {
+                nodeToBytes = FilesHandler.serialize(new Node(new Random().nextInt(), new Random().nextInt(),node));
+                realNodeBytes = FilesHandler.serialize(nodeToBytes.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (realNodeBytes.length + nodeToBytes.length > blockSize)
+                break;
+            totalRecordsInNode++;
+        }while(true);
+        return totalRecordsInNode;
     }
 
-    public int getLevelInRstarTree() {
-        return levelInRstarTree;
+    public static int calculateMinRecordsInNode(){
+        return  (int) (0.4 * MAX_NODE_RECORDS);
     }
+
 }
