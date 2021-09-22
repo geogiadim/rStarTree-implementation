@@ -27,4 +27,7 @@ public class NodeRecord implements Serializable {
 
     public MinBoundingRectangle getMbr(){ return mbr; }
     public long getChildNodeId(){ return childNodeId; }
+    public ArrayList<Bounds> getBoundsArray(){ return boundsArray; }
+    public long getBlockIdPointer(){ return blockIdPointer;}
+    public long getRecordIdPointer(){ return recordIdPointer; }
 }
