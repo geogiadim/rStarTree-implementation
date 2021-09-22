@@ -10,6 +10,7 @@ public class Main {
         // testing
         printMetaData();
         printSpecificBLock(1);
+        printIndexMetaData();
         // end testing
 
         RStarTree tree = new RStarTree();
@@ -67,10 +68,15 @@ public class Main {
 
         if (data!= null){
             for (Record record: data){
-                System.out.println(record.getSlotId() + " , " +record.getRecordsCoordinates());
+                System.out.println(record.getRecordId() + " , " +record.getRecordsCoordinates());
             }
         }else {
             System.out.println("null records");
         }
+    }
+
+    private static void printIndexMetaData (){
+        System.out.println(Node.getMaxNodeRecords() + " max index records");
+        System.out.println(Node.getMinNodeRecords() + " min index records");
     }
 }

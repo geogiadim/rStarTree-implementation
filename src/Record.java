@@ -5,16 +5,16 @@ import java.util.ArrayList;
  * This class represent a point in the k-dimensional space
  */
 public class Record implements Serializable {
-    private long slotId;
+    private long recordId;
     private ArrayList<Double> recordsCoordinates;
 
-    public Record(long slotId, ArrayList<Double> recordsCoordinates){
-        this.slotId = slotId;
+    public Record(long recordId, ArrayList<Double> recordsCoordinates){
+        this.recordId = recordId;
         this.recordsCoordinates = recordsCoordinates;
     }
 
-    public long getSlotId() {
-        return slotId;
+    public long getRecordId() {
+        return recordId;
     }
 
     public ArrayList<Double> getRecordsCoordinates() {
