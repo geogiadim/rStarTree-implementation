@@ -1,7 +1,9 @@
 import java.util.ArrayList;
 
 public class RStarTree {
-
+    private int totalHeight = 1;
+    private final int LEAF_HEIGHT = 1;
+    private Node root;
 
     public RStarTree(){
         root = new Node(1,1, null); // Create root node
