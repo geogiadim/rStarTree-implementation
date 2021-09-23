@@ -5,10 +5,11 @@ import java.util.ArrayList;
  *
  */
 public class NodeRecord implements Serializable {
-    private MinBoundingRectangle mbr ;
+    private MinBoundingRectangle mbr;
     private long childNodeId;
     // for leaf node record
-    private double[][] boundsArray;
+    //private double[][] boundsArray;
+    private boolean isLeafRecord;
     private long blockIdPointer;
     private long recordIdPointer;
 
@@ -17,18 +18,21 @@ public class NodeRecord implements Serializable {
         //this.mbr = mbr;
         this.mbr = calculateMBR(nodeRecords);
         this.childNodeId = childNodeId;
+        isLeafRecord = false;
     }
 
     // Leaf record constructor
     NodeRecord(double[][] boundsArray, long blockIdPointer, long recordIdPointer){
-        this.boundsArray = boundsArray;
+        //this.boundsArray = boundsArray;
+        this.mbr = new MinBoundingRectangle(boundsArray);
         this.blockIdPointer = blockIdPointer;
         this.recordIdPointer = recordIdPointer;
+        isLeafRecord = true;
     }
 
     public MinBoundingRectangle getMbr(){ return mbr; }
     public long getChildNodeId(){ return childNodeId; }
-    public double[][] getBoundsArray(){ return boundsArray; }
+    public boolean getIsLeafRecord(){ return isLeafRecord; }
     public long getBlockIdPointer(){ return blockIdPointer;}
     public long getRecordIdPointer(){ return recordIdPointer; }
 
