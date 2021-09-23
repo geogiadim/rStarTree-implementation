@@ -1,8 +1,5 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collection;
-
-import static java.util.stream.Collectors.summingLong;
-import static java.util.stream.Collectors.toList;
 
 public class RStarTree {
     private int totalHeight = 1;
@@ -32,7 +29,7 @@ public class RStarTree {
             }
         }
 
-        NodeRecord nodeRecord = new NodeRecord(boundsForEachDimension, blockPointer,blockRecord.getRecordId()   );
+        NodeRecord nodeRecord = new NodeRecord(boundsForEachDimension, blockPointer,blockRecord.getRecordId());
         insert(nodeRecord, LEAF_HEIGHT);
     }
     private void insert(NodeRecord nodeRecord, int nodeHeight){
@@ -78,31 +75,50 @@ public class RStarTree {
     }
 
     private NodeRecord findLeastOverlapEnlargement(NodeRecord newNodeRecord, ArrayList<NodeRecord> nodeRecords){
-        newNodeRecord.getBoundsArray();
+        // 1st column overlap-before ---- 2nd column overlap-after newNodeRecord
+        double[][] overlapArray = new double[nodeRecords.size()][2];
+        int counter = 0;
+        // Calculating overlap for every MBR before adding newNodeRecord
         for (NodeRecord nodeRecord: nodeRecords){
-            nodeRecord.
-        }
-        return ;
-    }
-    private MinBoundingRectangle calculateMBR(ArrayList<NodeRecord> nodeRecords){
-        double[][] bounds = new double[0][FilesHandler.getDataDimensions()];
-        for (int i = 0; i < FilesHandler.getDataDimensions(); i++){
-            double max;
-            double min = max = nodeRecords.get(0).getBoundsArray()[i][0];
-            for (NodeRecord rec : nodeRecords){
-                if (rec.getBoundsArray()[i][0] < min){
-                    min = rec.getBoundsArray()[i][0];
-                }
-                if (rec.getBoundsArray()[i][1] > max ){
-                    max = rec.getBoundsArray()[i][1];
-                }
+            for(NodeRecord nodeRecord2: nodeRecords){
+                if(nodeRecord != nodeRecord2)
+                    overlapArray[counter][0] += MinBoundingRectangle.calculateOverlapValue(nodeRecord.getMbr(), nodeRecord2.getMbr());
             }
-            bounds[i][0] = min;
-            bounds[i][1] = max;
+            counter++;
         }
-        return new MinBoundingRectangle(bounds);
-    }
+        // Calculating overlap for every MBR after adding newNodeRecord
+        for (NodeRecord nodeRecord: nodeRecords){
+            ArrayList<NodeRecord> pointAndRectangle = new ArrayList<>();
+            pointAndRectangle.add(nodeRecord);
+            pointAndRectangle.add(newNodeRecord);
+            MinBoundingRectangle newMBR = NodeRecord.calculateMBR(pointAndRectangle);
 
+            for(NodeRecord nodeRecord2: nodeRecords){
+                if(nodeRecord != nodeRecord2)
+                    overlapArray[counter][1] += MinBoundingRectangle.calculateOverlapValue(newMBR, nodeRecord2.getMbr());
+            }
+        }
+        // Finding the minimum difference
+        int minIndex = 0;
+        for (int i=1; i< nodeRecords.size(); i++){
+            if (overlapArray[i][1] - overlapArray[i][0] < overlapArray[minIndex][1] - overlapArray[minIndex][0] ){
+                minIndex = i;
+            }
+        }
+
+        ArrayList<NodeRecord> equaloverlaprecords = new ArrayList<>(); //Array list with tied NodeRecords
+        // Finding overlap enlargement ties
+        for (int i=0; i< nodeRecords.size(); i++) {
+            if (overlapArray[i][1] - overlapArray[i][0] == overlapArray[minIndex][1] - overlapArray[minIndex][0]) {
+                equaloverlaprecords.add(nodeRecords.get(i));
+            }
+        }
+        // and if there are ties then resolve equality calling findLeastAreaEnlargement function
+        if ( equaloverlaprecords.size() > 1)
+           return findLeastAreaEnlargement(equaloverlaprecords);
+
+        return nodeRecords.get(minIndex);
+    }
 
     private NodeRecord findLeastAreaEnlargement(ArrayList<NodeRecord> nodeRecords){
         NodeRecord bestRecord = nodeRecords.get(1);

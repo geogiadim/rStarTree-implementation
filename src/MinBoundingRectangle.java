@@ -40,4 +40,21 @@ public class MinBoundingRectangle implements Serializable {
         }
         return centerOfMBR;
     }
+
+
+    // Calculates and returns the overlap value between two bounding boxes
+    static double calculateOverlapValue(MinBoundingRectangle mbrA, MinBoundingRectangle mbrB) {
+        double overlapValue = 1;
+        for (int d = 0; d < FilesHandler.getDataDimensions(); d++)
+        {
+            double overlapForEachDimension = Math.min(mbrA.getBoundsArray()[d][1], mbrB.getBoundsArray()[d][1])
+                    - Math.max(mbrA.getBoundsArray()[d][0], mbrB.getBoundsArray()[d][0]);
+
+            if (overlapForEachDimension <= 0)
+                return 0;
+            else
+                overlapValue *= overlapForEachDimension;
+        }
+        return overlapValue;
+    }
 }
