@@ -21,12 +21,15 @@ public class Node implements Serializable {
         this.nodeRecords = nodeRecords;
     }
 
-    public ArrayList<NodeRecord> getNodeRecords(){return nodeRecords;}
     public int getLevelInRstarTree() {return levelInRstarTree;}
     public long getNodeId(){ return nodeId;}
-
     public static int getMaxNodeRecords() { return MAX_NODE_RECORDS; }
     public static int getMinNodeRecords() { return MIN_NODE_RECORDS; }
+    public ArrayList<NodeRecord> getNodeRecords(){return nodeRecords;}
+
+    public void addRecordInNode(NodeRecord rec){
+        nodeRecords.add(rec);
+    }
 
     // Calculates and return an integer which represents the maximum number of records a block of BLOCK_SIZE can have
     public static int calculateMaxRecordsInNode() {
