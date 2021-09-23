@@ -1,4 +1,8 @@
 import java.util.ArrayList;
+import java.util.Collection;
+
+import static java.util.stream.Collectors.summingLong;
+import static java.util.stream.Collectors.toList;
 
 public class RStarTree {
     private int totalHeight = 1;
@@ -78,12 +82,27 @@ public class RStarTree {
         for (NodeRecord nodeRecord: nodeRecords){
             nodeRecord.
         }
-
-
-
-        NodeRecord bestRecord = nodeRecords.get(1);
-        return bestRecord;
+        return ;
     }
+    private MinBoundingRectangle calculateMBR(ArrayList<NodeRecord> nodeRecords){
+        double[][] bounds = new double[0][FilesHandler.getDataDimensions()];
+        for (int i = 0; i < FilesHandler.getDataDimensions(); i++){
+            double max;
+            double min = max = nodeRecords.get(0).getBoundsArray()[i][0];
+            for (NodeRecord rec : nodeRecords){
+                if (rec.getBoundsArray()[i][0] < min){
+                    min = rec.getBoundsArray()[i][0];
+                }
+                if (rec.getBoundsArray()[i][1] > max ){
+                    max = rec.getBoundsArray()[i][1];
+                }
+            }
+            bounds[i][0] = min;
+            bounds[i][1] = max;
+        }
+        return new MinBoundingRectangle(bounds);
+    }
+
 
     private NodeRecord findLeastAreaEnlargement(ArrayList<NodeRecord> nodeRecords){
         NodeRecord bestRecord = nodeRecords.get(1);
