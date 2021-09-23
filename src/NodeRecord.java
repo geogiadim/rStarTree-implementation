@@ -1,5 +1,4 @@
 import java.io.Serializable;
-import java.util.ArrayList;
 
 /**
  *
@@ -8,7 +7,7 @@ public class NodeRecord implements Serializable {
     private MinBoundingRectangle mbr ;
     private long childNodeId;
     // for leaf node record
-    private ArrayList<Bounds> boundsArray;
+    private double[][] boundsArray;
     private long blockIdPointer;
     private long recordIdPointer;
 
@@ -19,7 +18,7 @@ public class NodeRecord implements Serializable {
     }
 
     // Leaf record constructor
-    NodeRecord(ArrayList<Bounds> boundsArray, long blockIdPointer, long recordIdPointer){
+    NodeRecord(double[][] boundsArray, long blockIdPointer, long recordIdPointer){
         this.boundsArray = boundsArray;
         this.blockIdPointer = blockIdPointer;
         this.recordIdPointer = recordIdPointer;
@@ -27,7 +26,7 @@ public class NodeRecord implements Serializable {
 
     public MinBoundingRectangle getMbr(){ return mbr; }
     public long getChildNodeId(){ return childNodeId; }
-    public ArrayList<Bounds> getBoundsArray(){ return boundsArray; }
+    public double[][] getBoundsArray(){ return boundsArray; }
     public long getBlockIdPointer(){ return blockIdPointer;}
     public long getRecordIdPointer(){ return recordIdPointer; }
 }

@@ -14,7 +14,6 @@ public class Node implements Serializable {
     private int levelInRstarTree; // The height of the location of the Node
     private long nodeId;
 
-
     // Node constructor with height and nodeRecords as parameters
     Node(int nodeId , int levelInRstarTree, ArrayList<NodeRecord> nodeRecords) {
         this.nodeId = nodeId;
@@ -35,9 +34,7 @@ public class Node implements Serializable {
         long blockSize = FilesHandler.getBlockSize();
         int totalRecordsInNode = 0;
         do {
-            ArrayList<Bounds> boundsForEachDimension = new ArrayList<>();
-            for (int d = 0; d < FilesHandler.getDataDimensions(); d++)
-                boundsForEachDimension.add(new Bounds(0.0, 0.0));
+            double[][] boundsForEachDimension = new double[FilesHandler.getDataDimensions()][2]; // Java initializes array cells to zero by default
 
             NodeRecord nodeRecord = new NodeRecord( boundsForEachDimension, new Random().nextLong(), new Random().nextLong()); //leaf node records hold more fields than regular noderecords
             node.add(nodeRecord);
@@ -59,5 +56,4 @@ public class Node implements Serializable {
     public static int calculateMinRecordsInNode(){
         return  (int) (0.4 * MAX_NODE_RECORDS);
     }
-
 }

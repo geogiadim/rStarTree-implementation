@@ -20,4 +20,5 @@ public class Record implements Serializable {
     public ArrayList<Double> getRecordsCoordinates() {
         return recordsCoordinates;
     }
+    double getCoordinateForSingleDimension(int d) { return recordsCoordinates.get(d);}
 }

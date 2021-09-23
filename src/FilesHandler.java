@@ -30,7 +30,7 @@ public class FilesHandler {
     static int getTotalBlocksInDataFile(){return totalBlocksInDataFile;}
     static int getMaxRecordsInSingleBLock(){return maxRecordsInSingleBLock;}
     static int getTotalBlocksInIndexFile() {return totalBlocksInIndexFile;}
-    static int getLevelsOfRStarTree(){return heightOfRStarTree;}
+    static int getHeightOfRStarTree(){return heightOfRStarTree;}
 
     /**
      * initialize the data file
@@ -119,36 +119,6 @@ public class FilesHandler {
         return recCounter;
     }
 
-//    private static int calculateMaxRecordsInSingleNode(){
-//        ArrayList<NodeRecord> node = new ArrayList<>();
-//        int recCounter = 0;
-//        do{
-//            //create dummy records
-//            ArrayList<Double> coordinates = new ArrayList<>();
-//            for (int d=0; d < dataDimensions; d++){
-//                coordinates.add(0.0);
-//            }
-//            Record record = new Record(0,coordinates);
-//            node.add(record);
-//
-//            // initialize byte arrays in order to store the serialized records
-//            byte[] recordToBytes = new byte[0];
-//            byte[] realRecordBytes = new byte[0];
-//            try {
-//                // serialize records to be able to be written in the .dat file
-//                recordToBytes = serialize(node);
-//                realRecordBytes = serialize(recordToBytes.length);
-//            } catch (IOException e){
-//                e.printStackTrace();
-//            }
-//            if (realRecordBytes.length + recordToBytes.length > BLOCK_SIZE){
-//                break;
-//            }
-//            recCounter ++;
-//        }while (true);
-//
-//        return recCounter;
-//    }
 
     /**
      * Write metadata in first block of data file
