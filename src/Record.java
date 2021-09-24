@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 /**
  * This class represent a point in the k-dimensional space
+ * Records are stored in blocks of X Kb inside a .dat file
  */
 public class Record implements Serializable {
     private long recordId;

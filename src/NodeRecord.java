@@ -2,13 +2,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
- *
+ * Represents a record inside a Node of the tree
+ * record can be eiter a leaf record that represent a point in k-dimension space
+ * or internal record that represent a rectangle (MBR)
  */
 public class NodeRecord implements Serializable {
     private MinBoundingRectangle mbr;
     private long childNodeId;
     // for leaf node record
-    //private double[][] boundsArray;
     private boolean isLeafRecord;
     private long blockIdPointer;
     private long recordIdPointer;

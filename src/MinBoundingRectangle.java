@@ -1,6 +1,9 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * Implements the Minimum Bounding Rectangle that contains either points or other rectangles
+ */
 public class MinBoundingRectangle implements Serializable {
     // first column = lower bound, second column = higher bound
     // rows = dimensions , columns = 2
@@ -42,7 +45,7 @@ public class MinBoundingRectangle implements Serializable {
     }
 
 
-    // Calculates and returns the overlap value between two bounding boxes
+    // Calculates the overlap value between two minimum bounding rectangles
     static double calculateOverlapValue(MinBoundingRectangle mbrA, MinBoundingRectangle mbrB) {
         double overlapValue = 1;
         for (int d = 0; d < FilesHandler.getDataDimensions(); d++)

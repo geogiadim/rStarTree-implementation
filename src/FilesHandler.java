@@ -18,7 +18,7 @@ public class FilesHandler {
     private static int totalBlocksInDataFile;
     private static int maxRecordsInSingleBLock;
 
-    private static int totalBlocksInIndexFile;
+    private static int totalNodesInIndexFile;
     private static int heightOfRStarTree;
 
     static String getDelimiter() {return DELIMITER;}
@@ -29,7 +29,7 @@ public class FilesHandler {
     static int getBlockSize(){return BLOCK_SIZE;}
     static int getTotalBlocksInDataFile(){return totalBlocksInDataFile;}
     static int getMaxRecordsInSingleBLock(){return maxRecordsInSingleBLock;}
-    static int getTotalBlocksInIndexFile() {return totalBlocksInIndexFile;}
+    static int getTotalNodesInIndexFile() {return totalNodesInIndexFile;}
     static int getHeightOfRStarTree(){return heightOfRStarTree;}
 
     /**
@@ -165,7 +165,7 @@ public class FilesHandler {
             // read the block from data file and write it in the new initialized block
             int result = bis.read(block,0, BLOCK_SIZE);
 
-            byte[] realMetadataBytes = serialize(new Random().nextInt()); // Serializing an integer ir order to get the size of goodPutLength in bytes
+            byte[] realMetadataBytes = serialize(new Random().nextInt());
             System.arraycopy(block, 0, realMetadataBytes, 0, realMetadataBytes.length);
 
             byte[] dataInBlock = new byte[(Integer)deserialize(realMetadataBytes)];
@@ -243,6 +243,46 @@ public class FilesHandler {
         }
         return null;
     }
+
+
+
+    /**
+     * Read a specific node from index file depending on given node id
+     */
+    static Node readNodeInIndexFile (long nodeId){
+        try {
+            // check if block id number is valid
+            if (nodeId < 1 || nodeId > totalNodesInIndexFile)
+                throw new Exception("You try to read block that does not exist.");
+            // open input streams in order to read the file
+            RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_INDEX_FILE), "rw");
+            FileInputStream fis = new FileInputStream(raf.getFD());
+            BufferedInputStream bis = new BufferedInputStream(fis);
+
+            //go to demanded block inside index file
+            raf.seek(nodeId*BLOCK_SIZE);
+
+            // initialize a block
+            byte[] block = new byte[BLOCK_SIZE];
+
+            // read the block from data file and write it in the new initialized block
+            int result = bis.read(block,0, BLOCK_SIZE);
+
+
+            byte[] realDataBytes = serialize(new Random().nextInt());
+            System.arraycopy(block, 0, realDataBytes, 0, realDataBytes.length);
+
+            byte[] dataInNode = new byte[(Integer)deserialize(realDataBytes)];
+            System.arraycopy(block, realDataBytes.length, dataInNode, 0, dataInNode.length);
+
+            return (Node) deserialize(dataInNode);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     /**
      * Serialize data in order to write them in dat file

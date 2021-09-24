@@ -3,6 +3,8 @@ import java.util.Scanner;
 
 /**
  * Main Class off the program
+ * initialize all processes
+ * Handles the interaction with the user
  */
 public class Main {
     public static void main(String[] args) {

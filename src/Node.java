@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- *
+ * Represents a Node inside R star Tree
  */
 public class Node implements Serializable {
     private static final int MAX_NODE_RECORDS = calculateMaxRecordsInNode();
@@ -31,8 +31,8 @@ public class Node implements Serializable {
         nodeRecords.add(rec);
     }
 
-    // Calculates and return an integer which represents the maximum number of records a block of BLOCK_SIZE can have
-    public static int calculateMaxRecordsInNode() {
+    // Calculates and return the maximum number of records that fit inside one node (node size = block size in kb)
+    private static int calculateMaxRecordsInNode() {
         ArrayList<NodeRecord> node = new ArrayList<>();
         long blockSize = FilesHandler.getBlockSize();
         int totalRecordsInNode = 0;
@@ -56,6 +56,8 @@ public class Node implements Serializable {
         return totalRecordsInNode;
     }
 
+    // Calculates and return the minimum number of records that fit inside one node
+    // we set min to be 40% of max as the optimized solution
     public static int calculateMinRecordsInNode(){
         return  (int) (0.4 * MAX_NODE_RECORDS);
     }
