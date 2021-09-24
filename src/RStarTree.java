@@ -39,6 +39,7 @@ public class RStarTree {
                 boundsForEachDimension[d][k] = blockRecord.getCoordinateForSingleDimension(d);
             }
         }
+        overflowCalledInLevel = new boolean[totalHeight];
         // create a node record
         NodeRecord nodeRecord = new NodeRecord(boundsForEachDimension, blockPointer,blockRecord.getRecordId());
         // ID1 Invoke Insert starting with the leaf level as a parameter to insert a new data rectangle
@@ -94,7 +95,7 @@ public class RStarTree {
         // rectangle. Resolve ties by choosing the leaf with the rectangle of smallest area
         else if (node.getLevelInRstarTree() > 2 && node.getLevelInRstarTree() < totalHeight){
             ArrayList<NodeRecord> nodeRecords = node.getNodeRecords();
-            NodeRecord bestNodeRecord = findLeastAreaEnlargement(nodeRecords);
+            NodeRecord bestNodeRecord = findLeastAreaEnlargement(newNodeRecord, nodeRecords);
 
             //CS3 Set N to be the child node pointed to by the
             // child pointer of the chosen entry and repeat from CS2
@@ -189,4 +190,91 @@ public class RStarTree {
         return nodeRecords.get(minIndex);
     }
 
+    /**
+     * Finds smallest area if newNodeRecord is included in MBR (nodeRecords)
+     */
+    private NodeRecord findSmallestMBRArea(NodeRecord newNodeRecord, ArrayList<NodeRecord> nodeRecords){
+        ArrayList<NodeRecord> temp = new ArrayList<>();
+        temp.add(newNodeRecord);
+        //double minMBRarea = NodeRecord.calculateMBR().getArea();
+        NodeRecord minNodeRecord = nodeRecords.get(0);
+        double minMBRarea = Double.MAX_VALUE;
+        for (int i = 0; i < nodeRecords.size(); i++){
+            temp.add(nodeRecords.get(i));
+            if (NodeRecord.calculateMBR(temp).getArea() < minMBRarea){
+                minMBRarea = NodeRecord.calculateMBR(temp).getArea();
+                minNodeRecord = nodeRecords.get(i);
+            }
+            temp.remove(temp.size() - 1);
+        }
+        return minNodeRecord;
+    }
+
+    private void overflowTreatment(Node bestNode, NodeRecord newNodeRecord){
+        int nodeLevel = bestNode.getLevelInRstarTree();
+        if (nodeLevel != this.root.getLevelInRstarTree() && !overflowCalledInLevel[nodeLevel - 1]){
+            overflowCalledInLevel[nodeLevel - 1] = true;
+            reInsert();
+        }
+        else{
+            split(bestNode.getNodeRecords());
+        }
+    }
+    private void reInsert(){
+
+    }
+    private void split(ArrayList<NodeRecord> nodeRecords){
+        // S1 Invoke chooseSplitAxis to determine the axis, perpendicular to which the split is performed
+        splitAxis = chooseSplitAxis(nodeRecords);
+        // S2 Invoke chooseSplitIndex to determine the best distribution into two groups along that axis
+        chooseSplitIndex(splitAxis);
+        // S3 Distribute the entries into two groups
+
+    }
+
+    private void chooseSplitAxis(ArrayList<NodeRecord> nodeRecords){
+        for (int i = 0; i < FilesHandler.getDataDimensions(); i++) {
+            ArrayList<NodeRecord> nodeRecordsByUpper = new ArrayList<>();
+            ArrayList<NodeRecord> nodeRecordsByLower = new ArrayList<>();
+
+            for (NodeRecord nodeRecord: nodeRecords){
+                nodeRecordsByLower.add(nodeRecord);
+                nodeRecordsByUpper.add(nodeRecord);
+            }
+
+            nodeRecordsByLower = sortRecords(nodeRecordsByLower, true, i);
+            nodeRecordsByUpper = sortRecords(nodeRecordsByUpper, false, i);
+        }
+    }
+
+    private ArrayList<NodeRecord> sortRecords(ArrayList<NodeRecord> nodeRecords,boolean isByLower, int dim) {
+        if (isByLower){
+            for(int i=0; i < nodeRecords.size(); i++){
+                for (int j = 1; j < (nodeRecords.size() - i); j++) {
+                    if(nodeRecords.get(j).getMbr().getBoundsArray()[dim][0] < nodeRecords.get(j-1).getMbr().getBoundsArray()[dim][0]){
+                        NodeRecord temp = nodeRecords.get(j-1);
+                        nodeRecords.set(j-1, nodeRecords.get(j));
+                        nodeRecords.set(j, temp);
+                    }
+                }
+            }
+        }
+        else{
+            for(int i=0; i < nodeRecords.size(); i++){
+                for (int j = nodeRecords.size(); j > i; j++) {
+                    if(nodeRecords.get(i).getMbr().getBoundsArray()[dim][1] > nodeRecords.get(j).getMbr().getBoundsArray()[dim][1]){
+                        NodeRecord temp = nodeRecords.get(j-1);
+                        nodeRecords.set(j-1, nodeRecords.get(j));
+                        nodeRecords.set(j, temp);
+                    }
+                }
+            }
+        }
+        return nodeRecords;
+    }
+
+
+    private void chooseSplitIndex(){
+
+    }
 }
