@@ -41,7 +41,7 @@ public class FilesHandler {
             Files.deleteIfExists(Paths.get(PATH_TO_DATA_FILE));
 
             FilesHandler.dataDimensions = dataDimensions;
-            writeMetaDataBlock();
+            writeMetaDataBlock(PATH_TO_DATA_FILE);
             // open buffer reader
             BufferedReader csvReader = (new BufferedReader(new FileReader(PATH_TO_CSV)));
             String stringRecord; // String used to read each line (row) of the csv file
@@ -49,7 +49,7 @@ public class FilesHandler {
             FilesHandler.maxRecordsInSingleBLock = calculateMaxRecordsInSingleBLock();
             // initialize the block array that contains records
             ArrayList<Record> block = new ArrayList<>();
-            // set 0 value in total blocks variable
+            // set 1 value in total blocks variable
             FilesHandler.totalBlocksInDataFile = 1;
             // reading csv file
             while ((stringRecord = csvReader.readLine()) != null)
@@ -69,15 +69,16 @@ public class FilesHandler {
                 /* check if block's array length is equal to max fitting records
                 then write the block in data file and creates new block arraylist for the next one */
                 if (block.size() == maxRecordsInSingleBLock ){
+                    totalBlocksInDataFile++;
                     writeBlockInDataFile(block);
                     block = new ArrayList<>();
-                    totalBlocksInDataFile++;
+
                 }
             }
             // check if there are remaining records and add them in last one block
             if (block.size() > 0 ){
-                writeBlockInDataFile(block);
                 totalBlocksInDataFile++;
+                writeBlockInDataFile(block);
             }
             csvReader.close();
         }catch(Exception e){
@@ -121,16 +122,26 @@ public class FilesHandler {
 
 
     /**
-     * Write metadata in first block of data file
+     * Write metadata in first block of data file or index file
      **/
-    private static void writeMetaDataBlock(){
+    private static void writeMetaDataBlock(String path){
         try {
             // Properties of metadata
             ArrayList<Integer> metadata = new ArrayList<>();
             metadata.add(dataDimensions);
             metadata.add(BLOCK_SIZE);
-            metadata.add(totalBlocksInDataFile);
-            metadata.add(maxRecordsInSingleBLock);
+
+            if (path.equals(PATH_TO_DATA_FILE)) {
+                metadata.add(totalBlocksInDataFile);
+                metadata.add(maxRecordsInSingleBLock);
+            }
+
+            if (path.equals(PATH_TO_INDEX_FILE)){
+                metadata.add(totalNodesInIndexFile);
+                metadata.add(heightOfRStarTree);
+                metadata.add(Node.getMaxNodeRecords());
+                metadata.add(Node.getMinNodeRecords());
+            }
 
             //Serializing metadata to be able to be written in the .dat file
             byte[] metadataToBytes = serialize (metadata);
@@ -142,7 +153,7 @@ public class FilesHandler {
             System.arraycopy(metadataToBytes, 0, block, realMetadataBytes.length, metadataToBytes.length);
 
             //Writing the block array to the .dat file
-            RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
+            RandomAccessFile raf = new RandomAccessFile(new File(path), "rw");
             raf.write(block);
             raf.close();
         } catch (Exception e){
@@ -151,12 +162,12 @@ public class FilesHandler {
     }
 
     /**
-     * Read the first block from data file that contains metadata
+     * Read the first block from data file or index file that contains metadata
      */
-    static ArrayList<Integer> readMetaDataBlock(){
+    static ArrayList<Integer> readMetaDataBlock(String path){
         try {
             // open input streams in order to read the file
-            RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
+            RandomAccessFile raf = new RandomAccessFile(new File(path), "rw");
             FileInputStream fis = new FileInputStream(raf.getFD());
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -203,7 +214,7 @@ public class FilesHandler {
             fos.flush();
 
             //update metadata block
-            writeMetaDataBlock();
+            writeMetaDataBlock(PATH_TO_DATA_FILE);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -212,10 +223,10 @@ public class FilesHandler {
     /**
      * Read a specific block from data file depending on given block id
      */
-    static ArrayList<Record>  readBlockInDataFile (int blockId){
+    static ArrayList<Record> readBlockInDataFile (int blockId){
         try {
             // check if block id number is valid
-            if (blockId < 1 || blockId > totalBlocksInDataFile)
+            if (blockId < 1 || blockId >= totalBlocksInDataFile)
                 throw new Exception("You try to read block that does not exist.");
             // open input streams in order to read the file
             RandomAccessFile raf = new RandomAccessFile(new File(PATH_TO_DATA_FILE), "rw");
@@ -244,7 +255,22 @@ public class FilesHandler {
         return null;
     }
 
+    static void initializeIndexFile(){
+        try{
+            Files.deleteIfExists(Paths.get(PATH_TO_INDEX_FILE));
+            heightOfRStarTree = 1;
+            totalNodesInIndexFile = 0 ;
+            writeMetaDataBlock(PATH_TO_INDEX_FILE);
 
+        }catch(Exception e){e.printStackTrace();}
+    }
+
+    /*
+     * to do
+     * 1) write index block
+     * 2) update index block
+     * 3) update total height of tree
+     */
 
     /**
      * Read a specific node from index file depending on given node id

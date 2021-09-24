@@ -50,8 +50,8 @@ public class RStarTree {
         Node node = root; //CS1 Set N to be the root
         Node bestNode = chooseSubTree(nodeRecord, node);
         //I2
-        if (bestNode != null)
-            bestNode.addRecordInNode(nodeRecord);
+//        if (bestNode != null)
+//            bestNode.addRecordInNode(nodeRecord);
     }
 
     /**

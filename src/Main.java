@@ -11,7 +11,7 @@ public class Main {
         askDimensionsInput();
         // testing
         printMetaData();
-        printSpecificBLock(1);
+        printSpecificBLock(2);
         printIndexMetaData();
         // end testing
 
@@ -33,6 +33,7 @@ public class Main {
          }while(dimensions <= 0);
 
         FilesHandler.initializeDataFile(dimensions);
+        FilesHandler.initializeIndexFile();
     }
 
     /**
@@ -40,11 +41,11 @@ public class Main {
      */
     private static void printMetaData(){
         ArrayList<Integer> metadata;
-        metadata = FilesHandler.readMetaDataBlock();
+        metadata = FilesHandler.readMetaDataBlock(FilesHandler.getPathToDataFile());
 
         if (metadata != null){
             int i = 0;
-            System.out.println("Metadata that are stored in first block of the .dat file: ");
+            System.out.println("Metadata that are stored in first block of the data.dat file: ");
             for (Integer element : metadata ) {
                 if (i == 0)
                     System.out.println("Data dimensions: " + element);
@@ -78,7 +79,30 @@ public class Main {
     }
 
     private static void printIndexMetaData (){
-        System.out.println(Node.getMaxNodeRecords() + " max index records");
-        System.out.println(Node.getMinNodeRecords() + " min index records");
+        ArrayList<Integer> metadata;
+        metadata = FilesHandler.readMetaDataBlock(FilesHandler.getPathToIndexFile());
+
+        if (metadata != null){
+            int i = 0;
+            System.out.println("Metadata that are stored in first block of the index.dat file: ");
+            for (Integer element : metadata ) {
+                if (i == 0)
+                    System.out.println("Data dimensions: " + element);
+                else if (i == 1)
+                    System.out.println("Size of each node in index file: " + element);
+                else if (i == 2)
+                    System.out.println("Total nodes inside index file: " + element);
+                else if (i ==3)
+                    System.out.println("Total height of R star tree: "+ element);
+                else if (i == 4)
+                    System.out.println("Max num of node records that fit in a single node: " + element);
+                else if (i == 5)
+                    System.out.println("Min num of node records that has a single node: " + element);
+
+                i++;
+            }
+        }else {
+            System.out.println("null meta data");
+        }
     }
 }
