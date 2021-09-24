@@ -265,9 +265,57 @@ public class FilesHandler {
         }catch(Exception e){e.printStackTrace();}
     }
 
+    static void writeIndexFileBlock(Node node){
+        try {
+            //Serializing data to be able to be written in the .dat file
+            byte[] nodeToBytes = serialize(node);
+            byte[] realNodeBytes = serialize(nodeToBytes.length);
+
+            //Putting the serialized data to a new empty block array
+            byte[] block = new byte[BLOCK_SIZE];
+            System.arraycopy(realNodeBytes, 0, block, 0, realNodeBytes.length);
+            System.arraycopy(nodeToBytes, 0, block, realNodeBytes.length, nodeToBytes.length);
+
+            //Writing the block array to the index.dat file
+            FileOutputStream fos = new FileOutputStream(PATH_TO_INDEX_FILE,true);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            bos.write(block);
+            bos.close();
+            bos.flush();
+            fos.close();
+            fos.flush();
+
+            //update metadata block
+            totalNodesInIndexFile++;
+            writeMetaDataBlock(PATH_TO_INDEX_FILE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void updateIndexFileBlock(Node node) {
+        try {
+            byte[] nodeInBytes = serialize(node);
+            byte[] goodPutLengthInBytes = serialize(nodeInBytes.length);
+            byte[] block = new byte[BLOCK_SIZE];
+            System.arraycopy(goodPutLengthInBytes, 0, block, 0, goodPutLengthInBytes.length);
+            System.arraycopy(nodeInBytes, 0, block, goodPutLengthInBytes.length, nodeInBytes.length);
+
+            RandomAccessFile f = new RandomAccessFile(new File(PATH_TO_INDEX_FILE), "rw");
+            f.seek(node.getNodeId()*BLOCK_SIZE); // this basically reads n bytes in the file
+            f.write(block);
+            f.close();
+
+//            if (node.getBlockId() == RStarTree.getRootNodeBlockId() && FilesHelper.totalLevelsOfTreeIndex != totalLevelsOfTreeIndex)
+//                updateLevelsOfTreeInIndexFile();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /*
      * to do
-     * 1) write index block
      * 2) update index block
      * 3) update total height of tree
      */

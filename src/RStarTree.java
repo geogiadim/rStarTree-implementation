@@ -7,10 +7,14 @@ public class RStarTree {
     private int totalHeight = 1;
     private final int LEAF_HEIGHT = 1;
     private Node root;
+    private boolean[] overflowCalledInLevel;
     private ArrayList<Node> listOfNodes = new ArrayList<>();
 
     public RStarTree(){
-        root = new Node(1,1, null); // Create root node
+        ArrayList<NodeRecord> nodeRecords = new ArrayList<>();
+        root = new Node(1,1, nodeRecords); // Create root node
+
+        FilesHandler.writeIndexFileBlock(root);
         // Adding the data of datafile in the RStarTree (to the indexFile)
         for (int blockPointer = 1; blockPointer< FilesHandler.getTotalBlocksInDataFile(); blockPointer++) {
             ArrayList<Record> records = FilesHandler.readBlockInDataFile(blockPointer);
@@ -49,9 +53,20 @@ public class RStarTree {
         // to find an appropriate node N, in which to place the new entry E
         Node node = root; //CS1 Set N to be the root
         Node bestNode = chooseSubTree(nodeRecord, node);
-        //I2
-//        if (bestNode != null)
-//            bestNode.addRecordInNode(nodeRecord);
+        //I2 If N has less than Max entries accommodate E in N
+        // if N has Max entries invoke OverflowTreatment with the level of N as a parameter
+        // [for reinsertion or split]
+
+        if (bestNode != null){
+            if (bestNode.getNodeRecords() != null) {
+                if (bestNode.getNodeRecords().size() < Node.getMaxNodeRecords()) {
+                    bestNode.addRecordInNode(nodeRecord);
+                    FilesHandler.updateIndexFileBlock(bestNode);
+                } else if (bestNode.getNodeRecords().size() == Node.getMaxNodeRecords()){
+                    overflowTreatment(bestNode, nodeRecord);
+                }
+            }
+        }
     }
 
     /**
@@ -89,6 +104,9 @@ public class RStarTree {
         return null;
     }
 
+    /**
+     * Finds least overlap enlargement if newNodeRecord is included in MBR (noderecords)
+     */
     private NodeRecord findLeastOverlapEnlargement(NodeRecord newNodeRecord, ArrayList<NodeRecord> nodeRecords){
         // 1st column overlap-before ---- 2nd column overlap-after newNodeRecord
         double[][] overlapArray = new double[nodeRecords.size()][2];
@@ -130,14 +148,45 @@ public class RStarTree {
         }
         // and if there are ties then resolve equality calling findLeastAreaEnlargement function
         if ( equaloverlaprecords.size() > 1)
-           return findLeastAreaEnlargement(equaloverlaprecords);
+           return findLeastAreaEnlargement( newNodeRecord,equaloverlaprecords);
 
         return nodeRecords.get(minIndex);
     }
 
-    private NodeRecord findLeastAreaEnlargement(ArrayList<NodeRecord> nodeRecords){
-        NodeRecord bestRecord = nodeRecords.get(1);
-        return bestRecord;
+    /**
+     * Finds least area enlargement if newNodeRecord is included in MBR (nodeRecords)
+     */
+    private NodeRecord findLeastAreaEnlargement(NodeRecord newNodeRecord, ArrayList<NodeRecord> nodeRecords){
+        // 1st column area before adding newNodeRecord - 2nd column area after adding newNodeRecord
+        double [][] compareEnlargement = new double[nodeRecords.size()][2];
+        ArrayList<NodeRecord> temp = new ArrayList<>();
+        temp.add(newNodeRecord);
+        for (int i = 0; i < nodeRecords.size(); i++){
+            temp.add(nodeRecords.get(i));
+            compareEnlargement[i][0] = nodeRecords.get(i).getMbr().getArea();
+            compareEnlargement[i][1] = NodeRecord.calculateMBR(temp).getArea();
+            temp.remove(temp.size()-1);
+        }
+
+        // Finding the minimum difference
+        int minIndex = 0;
+        for (int i=1; i< nodeRecords.size(); i++){
+            if(compareEnlargement[i][1] - compareEnlargement[i][0] < compareEnlargement[minIndex][1] - compareEnlargement[minIndex][0]){
+                minIndex = i;
+            }
+        }
+        ArrayList<NodeRecord> equalEnlargementRecords = new ArrayList<>();
+        // Finding area enlargement ties
+        for (int i=0; i< nodeRecords.size(); i++){
+            if(compareEnlargement[i][1] - compareEnlargement[i][0] == compareEnlargement[minIndex][1] - compareEnlargement[minIndex][0]){
+                equalEnlargementRecords.add(nodeRecords.get(i));
+            }
+        }
+        if (equalEnlargementRecords.size() > 1){
+            return findSmallestMBRArea(newNodeRecord, equalEnlargementRecords);
+        }
+
+        return nodeRecords.get(minIndex);
     }
 
 }

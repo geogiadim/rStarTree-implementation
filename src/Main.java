@@ -11,11 +11,12 @@ public class Main {
         askDimensionsInput();
         // testing
         printMetaData();
-        printSpecificBLock(2);
-        printIndexMetaData();
+        //-------------------------------------printSpecificBLock(2);
         // end testing
 
         RStarTree tree = new RStarTree();
+        printIndexMetaData();
+        printSpecificNode(1);
     }
 
     /**
@@ -72,6 +73,19 @@ public class Main {
         if (data!= null){
             for (Record record: data){
                 System.out.println(record.getRecordId() + " , " +record.getRecordsCoordinates());
+            }
+        }else {
+            System.out.println("null records");
+        }
+    }
+
+    private static void printSpecificNode(int blockId){
+        Node node;
+        node = FilesHandler.readNodeInIndexFile(blockId);
+
+        if (node!= null){
+            for (NodeRecord nodeRecord: node.getNodeRecords()){
+                System.out.println(nodeRecord.getChildNodeId() + " , " +nodeRecord.getRecordIdPointer() );
             }
         }else {
             System.out.println("null records");

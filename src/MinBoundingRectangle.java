@@ -20,6 +20,9 @@ public class MinBoundingRectangle implements Serializable {
     }
 
     double[][] getBoundsArray(){ return boundsArray; }
+    double getArea(){ return area; }
+    double getMargin(){ return margin; }
+    ArrayList<Double> getCenter() { return center;}
 
     private double calculateMBRArea(){
         double areaOfMBR = 1;
