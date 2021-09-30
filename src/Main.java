@@ -10,16 +10,19 @@ public class Main {
     public static void main(String[] args) {
         askDimensionsInput();
         // testing
-        printMetaData();
-        System.out.println("------------------------------------");
-        System.out.println("------------------------------------");
         //-------------------------------------printSpecificBLock(2);
         // end testing
 
+        printMetaData();
+        System.out.println("------------------------------------");
+        System.out.println("------------------------------------");
+
         RStarTree tree = new RStarTree();
+
         printIndexMetaData();
         System.out.println("------------------------------------");
         System.out.println("------------------------------------");
+
         for (int i=1; i<= FilesHandler.getTotalNodesInIndexFile();i++){
             printSpecificNode(i);
             System.out.println("------------------------------------");

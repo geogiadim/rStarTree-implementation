@@ -9,6 +9,8 @@ public class RStarTree {
     private Node root;
     private boolean[] overflowCalledInLevel;
     private ArrayList<Node> listOfNodes = new ArrayList<>();
+    private static final int REINSERT_P_ENTRIES = (int) (0.30 * Node.getMaxNodeRecords()); // Set p to 30% of max nodeRecords in a single node
+
 
     public RStarTree(){
         ArrayList<NodeRecord> nodeRecords = new ArrayList<>();
@@ -218,6 +220,8 @@ public class RStarTree {
      */
     private void overflowTreatment(Node bestNode, NodeRecord newNodeRecord){
         int nodeLevel = bestNode.getLevelInRstarTree();
+        // fix "!overflowCalledInLevel[nodeLevel - 1]" in order to call reInsert
+        // without fix never get in if case
         if (nodeLevel != this.root.getLevelInRstarTree() && overflowCalledInLevel[nodeLevel - 1]){
             overflowCalledInLevel[nodeLevel - 1] = true;
 
@@ -284,9 +288,16 @@ public class RStarTree {
      *  Reinsert algorithm of R star tree
      */
     private void reInsert(Node node, NodeRecord newNodeRecord){
+        ArrayList<NodeRecord> nodeRecords = node.getNodeRecords();
+        nodeRecords.add(newNodeRecord);
+        double[][] distances = new double[nodeRecords.size()][FilesHandler.getDataDimensions()];
 
+        for (int i=0; i< nodeRecords.size(); i++){
+            for (int d=0; d<FilesHandler.getDataDimensions(); d++){
+                //distances[i][d] = java.lang.Math.abs(nodeRecords.get(i).getMbr().getCenter().get(d) - nodeRecords.get(i).getMbr().getCenter().get(d));
+            }
 
-
+        }
     }
 
     /**
