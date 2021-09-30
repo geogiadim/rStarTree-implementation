@@ -293,7 +293,7 @@ public class FilesHandler {
         }
     }
 
-    static void updateIndexFileBlock(Node node) {
+    static void updateIndexFileBlock(Node node, boolean increasedTreeLevel) {
         try {
             byte[] nodeInBytes = serialize(node);
             byte[] goodPutLengthInBytes = serialize(nodeInBytes.length);
@@ -305,6 +305,11 @@ public class FilesHandler {
             f.seek(node.getNodeId()*BLOCK_SIZE); // this basically reads n bytes in the file
             f.write(block);
             f.close();
+
+            if (increasedTreeLevel){
+                heightOfRStarTree++;
+                writeMetaDataBlock(PATH_TO_INDEX_FILE);
+            }
 
 //            if (node.getBlockId() == RStarTree.getRootNodeBlockId() && FilesHelper.totalLevelsOfTreeIndex != totalLevelsOfTreeIndex)
 //                updateLevelsOfTreeInIndexFile();

@@ -11,12 +11,20 @@ public class Main {
         askDimensionsInput();
         // testing
         printMetaData();
+        System.out.println("------------------------------------");
+        System.out.println("------------------------------------");
         //-------------------------------------printSpecificBLock(2);
         // end testing
 
         RStarTree tree = new RStarTree();
         printIndexMetaData();
+        System.out.println("------------------------------------");
+        System.out.println("------------------------------------");
         printSpecificNode(1);
+        System.out.println("------------------------------------");
+        printSpecificNode(2);
+        System.out.println("------------------------------------");
+        printSpecificNode(3);
     }
 
     /**

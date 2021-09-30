@@ -62,7 +62,7 @@ public class RStarTree {
             if (bestNode.getNodeRecords() != null) {
                 if (bestNode.getNodeRecords().size() < Node.getMaxNodeRecords()) {
                     bestNode.addRecordInNode(nodeRecord);
-                    FilesHandler.updateIndexFileBlock(bestNode);
+                    FilesHandler.updateIndexFileBlock(bestNode, false);
                 } else if (bestNode.getNodeRecords().size() == Node.getMaxNodeRecords()){
                     overflowTreatment(bestNode, nodeRecord);
                 }
@@ -220,7 +220,23 @@ public class RStarTree {
             reInsert();
         }
         else{
-            split(bestNode.getNodeRecords());
+            ArrayList<NodeRecord> splitNodeRecords = bestNode.getNodeRecords();
+            splitNodeRecords.add(newNodeRecord);
+            ArrayList<Node> newNodes = split(splitNodeRecords);
+            bestNode = newNodes.get(0);
+            Node splitNode = newNodes.get(1);
+            // if root split occurred
+            if (bestNode.getNodeId() == 1){
+                FilesHandler.writeIndexFileBlock(bestNode);
+                FilesHandler.writeIndexFileBlock(splitNode);
+
+                ArrayList<NodeRecord> newRootRecords = new ArrayList<>();
+                newRootRecords.add(new NodeRecord(bestNode.getNodeRecords(),bestNode.getNodeId()));
+                newRootRecords.add(new NodeRecord(splitNode.getNodeRecords(),splitNode.getNodeId()));
+                Node newRoot = new Node(1,++totalHeight,newRootRecords);
+                FilesHandler.updateIndexFileBlock(newRoot,true);
+            }
+
         }
     }
 
@@ -239,8 +255,6 @@ public class RStarTree {
         ArrayList<Distribution> splitAxis = chooseSplitAxis(nodeRecords);
         // S2 Invoke chooseSplitIndex to determine the best distribution into two groups along that axis
         return chooseSplitIndex(splitAxis);
-        // S3 Distribute the entries into two groups
-
     }
 
     /**
@@ -364,11 +378,11 @@ public class RStarTree {
 
         ArrayList<Node> splitNodes = new ArrayList<>();
         DistroGroup distroGroupA = splitAxisDistros.get(bestIndex).getFirstGroup();
-        DistroGroup distroGroupB = splitAxisDistros.get(bestIndex).getFirstGroup();
+        DistroGroup distroGroupB = splitAxisDistros.get(bestIndex).getSecondGroup();
         ArrayList<NodeRecord> firsGroupRecords = distroGroupA.getNodeRecords();
         ArrayList<NodeRecord> secondGroupRecords = distroGroupB.getNodeRecords();
-        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+1, totalHeight, firsGroupRecords));
-        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+2, totalHeight, secondGroupRecords));
+        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile(), totalHeight, firsGroupRecords));
+        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+1, totalHeight, secondGroupRecords));
 
         return splitNodes;
     }
