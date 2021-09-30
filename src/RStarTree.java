@@ -210,6 +210,9 @@ public class RStarTree {
         return minNodeRecord;
     }
 
+    /**
+     * OverflowTreatment algorithm of R star tree
+     */
     private void overflowTreatment(Node bestNode, NodeRecord newNodeRecord){
         int nodeLevel = bestNode.getLevelInRstarTree();
         if (nodeLevel != this.root.getLevelInRstarTree() && !overflowCalledInLevel[nodeLevel - 1]){
@@ -220,19 +223,32 @@ public class RStarTree {
             split(bestNode.getNodeRecords());
         }
     }
+
+    /**
+     *  Reinsert algorithm of R star tree
+     */
     private void reInsert(){
 
     }
-    private void split(ArrayList<NodeRecord> nodeRecords){
+
+    /**
+     *  Split algorithm of R star tree
+     */
+    private ArrayList<Node> split(ArrayList<NodeRecord> nodeRecords){
         // S1 Invoke chooseSplitAxis to determine the axis, perpendicular to which the split is performed
-        splitAxis = chooseSplitAxis(nodeRecords);
+        ArrayList<Distribution> splitAxis = chooseSplitAxis(nodeRecords);
         // S2 Invoke chooseSplitIndex to determine the best distribution into two groups along that axis
-        chooseSplitIndex(splitAxis);
+        return chooseSplitIndex(splitAxis);
         // S3 Distribute the entries into two groups
 
     }
 
-    private void chooseSplitAxis(ArrayList<NodeRecord> nodeRecords){
+    /**
+     *  ChooseSplitAxis algorithm of R star tree
+     */
+    private ArrayList<Distribution> chooseSplitAxis(ArrayList<NodeRecord> nodeRecords){
+        double splitAxisMarginsSum = Double.MAX_VALUE;
+        ArrayList<Distribution> splitAxisDistributions = new ArrayList<>();
         for (int i = 0; i < FilesHandler.getDataDimensions(); i++) {
             ArrayList<NodeRecord> nodeRecordsByUpper = new ArrayList<>();
             ArrayList<NodeRecord> nodeRecordsByLower = new ArrayList<>();
@@ -244,9 +260,50 @@ public class RStarTree {
 
             nodeRecordsByLower = sortRecords(nodeRecordsByLower, true, i);
             nodeRecordsByUpper = sortRecords(nodeRecordsByUpper, false, i);
+
+            ArrayList<ArrayList<NodeRecord>> bothSortedLists = new ArrayList<>();
+            bothSortedLists.add(nodeRecordsByLower);
+            bothSortedLists.add(nodeRecordsByUpper);
+
+            double sumOfMBRMargins = 0;
+            ArrayList<Distribution>  totalDistros = new ArrayList<>();
+
+            //Total number of different distributions = M-2*m+2 for each sorted arraylist
+            int numOfDistros = Node.getMaxNodeRecords() - 2 * Node.getMinNodeRecords() + 2 ;
+
+            for (ArrayList<NodeRecord> sortedList : bothSortedLists){
+                for (int k=1; k<= numOfDistros; k++){
+                    ArrayList<NodeRecord> firstGroup = new ArrayList<>();
+                    ArrayList<NodeRecord> secondGroup = new ArrayList<>();
+                    // The first group includes the first (m-1)+k entries, the second group includes remaining entries
+                    for (int j = 0; j < (Node.getMinNodeRecords() -1)+k; j++)
+                        firstGroup.add(sortedList.get(j));
+                    for (int j = (Node.getMinNodeRecords() -1)+k; j < nodeRecords.size(); j++)
+                        secondGroup.add(sortedList.get(j));
+
+                    MinBoundingRectangle mbrGroupA = NodeRecord.calculateMBR(firstGroup);
+                    MinBoundingRectangle mbrGroupB = NodeRecord.calculateMBR(secondGroup);
+
+                    sumOfMBRMargins += mbrGroupA.getMargin() + mbrGroupB.getMargin();
+
+                    DistroGroup distroGroupA = new DistroGroup(firstGroup, mbrGroupA);
+                    DistroGroup distroGroupB = new DistroGroup(secondGroup, mbrGroupB);
+                    Distribution distribution = new Distribution(distroGroupA, distroGroupB);
+                    totalDistros.add(distribution);
+                }
+                // Choose the axis with the minimum sum as split axis
+                if (splitAxisMarginsSum > sumOfMBRMargins) {
+                    splitAxisMarginsSum = sumOfMBRMargins;
+                    splitAxisDistributions = totalDistros;
+                }
+            }
         }
+        return splitAxisDistributions;
     }
 
+    /**
+     * Sort by lower or by upper nodeRecords
+     */
     private ArrayList<NodeRecord> sortRecords(ArrayList<NodeRecord> nodeRecords,boolean isByLower, int dim) {
         if (isByLower){
             for(int i=0; i < nodeRecords.size(); i++){
@@ -261,7 +318,7 @@ public class RStarTree {
         }
         else{
             for(int i=0; i < nodeRecords.size(); i++){
-                for (int j = nodeRecords.size(); j > i; j++) {
+                for (int j = 1; j  < (nodeRecords.size() -i ); j++) {
                     if(nodeRecords.get(i).getMbr().getBoundsArray()[dim][1] > nodeRecords.get(j).getMbr().getBoundsArray()[dim][1]){
                         NodeRecord temp = nodeRecords.get(j-1);
                         nodeRecords.set(j-1, nodeRecords.get(j));
@@ -274,7 +331,45 @@ public class RStarTree {
     }
 
 
-    private void chooseSplitIndex(){
+    /**
+     * returns the two nodes that created by split of parent node
+     */
+    private ArrayList<Node> chooseSplitIndex(ArrayList<Distribution> splitAxisDistros){
+        double minOverlapValue = Double.MAX_VALUE;
+        double minAreaValue = Double.MAX_VALUE;
 
+        int bestIndex = 0;
+
+        // choose the distro with min overlap value
+        for (int i =0 ; i < splitAxisDistros.size(); i++){
+            DistroGroup distroGroupA = splitAxisDistros.get(i).getFirstGroup();
+            DistroGroup distroGroupB = splitAxisDistros.get(i).getSecondGroup();
+
+            double mbrOverlap = MinBoundingRectangle.calculateOverlapValue(distroGroupA.getMBR(), distroGroupB.getMBR());
+
+            if (mbrOverlap < minOverlapValue){
+                minOverlapValue = mbrOverlap;
+                minAreaValue = distroGroupA.getMBR().getArea() + distroGroupB.getMBR().getArea();
+                bestIndex = i;
+            }
+            // resolve ties by minimum area value
+            else if (mbrOverlap == minOverlapValue){
+                double mbrArea = distroGroupA.getMBR().getArea() + distroGroupB.getMBR().getArea();
+                if (mbrArea < minAreaValue){
+                    minAreaValue = mbrArea;
+                    bestIndex = i;
+                }
+            }
+        }
+
+        ArrayList<Node> splitNodes = new ArrayList<>();
+        DistroGroup distroGroupA = splitAxisDistros.get(bestIndex).getFirstGroup();
+        DistroGroup distroGroupB = splitAxisDistros.get(bestIndex).getFirstGroup();
+        ArrayList<NodeRecord> firsGroupRecords = distroGroupA.getNodeRecords();
+        ArrayList<NodeRecord> secondGroupRecords = distroGroupB.getNodeRecords();
+        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+1, totalHeight, firsGroupRecords));
+        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+2, totalHeight, secondGroupRecords));
+
+        return splitNodes;
     }
 }
