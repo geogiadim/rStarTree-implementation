@@ -9,12 +9,12 @@ import java.util.Random;
  */
 public class FilesHandler {
     private static final String DELIMITER = ",";
-    private static final String PATH_TO_CSV = "./files/small-peraia.csv";
-    private static final String PATH_TO_DATA_FILE = "./files/small-datafile.dat";
-    private static final String PATH_TO_INDEX_FILE = "./files/small-indexfile.dat";
+    private static final String PATH_TO_CSV = "./files/large-peraia.csv";
+    private static final String PATH_TO_DATA_FILE = "./files/large-datafile.dat";
+    private static final String PATH_TO_INDEX_FILE = "./files/large-indexfile.dat";
 
     private static int dataDimensions;
-    private static final int BLOCK_SIZE = 2 * 1024;
+    private static final int BLOCK_SIZE = 32 * 1024;
     private static int totalBlocksInDataFile;
     private static int maxRecordsInSingleBLock;
 
