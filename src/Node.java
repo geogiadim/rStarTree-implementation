@@ -15,12 +15,13 @@ public class Node implements Serializable {
     private long nodeId;
 
     // Node constructor with height and nodeRecords as parameters
-    Node(int nodeId , int levelInRstarTree, ArrayList<NodeRecord> nodeRecords) {
+    Node(long nodeId , int levelInRstarTree, ArrayList<NodeRecord> nodeRecords) {
         this.nodeId = nodeId;
         this.levelInRstarTree = levelInRstarTree;
         this.nodeRecords = nodeRecords;
     }
 
+    public void setNodeId(long nodeId) {this.nodeId = nodeId;}
     public int getLevelInRstarTree() {return levelInRstarTree;}
     public long getNodeId(){ return nodeId;}
     public static int getMaxNodeRecords() { return MAX_NODE_RECORDS; }

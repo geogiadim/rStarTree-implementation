@@ -120,6 +120,7 @@ public class RStarTree {
             }
             counter++;
         }
+        int counter2 = 0;
         // Calculating overlap for every MBR after adding newNodeRecord
         for (NodeRecord nodeRecord: nodeRecords){
             ArrayList<NodeRecord> pointAndRectangle = new ArrayList<>();
@@ -129,8 +130,9 @@ public class RStarTree {
 
             for(NodeRecord nodeRecord2: nodeRecords){
                 if(nodeRecord != nodeRecord2)
-                    overlapArray[counter][1] += MinBoundingRectangle.calculateOverlapValue(newMBR, nodeRecord2.getMbr());
+                    overlapArray[counter2][1] += MinBoundingRectangle.calculateOverlapValue(newMBR, nodeRecord2.getMbr());
             }
+            counter2++;
         }
         // Finding the minimum difference
         int minIndex = 0;
@@ -227,13 +229,16 @@ public class RStarTree {
             Node splitNode = newNodes.get(1);
             // if root split occurred
             if (bestNode.getNodeId() == 1){
+                bestNode.setNodeId(bestNode.getNodeId()+1);
                 FilesHandler.writeIndexFileBlock(bestNode);
+                splitNode.setNodeId(splitNode.getNodeId()+1);
                 FilesHandler.writeIndexFileBlock(splitNode);
 
                 ArrayList<NodeRecord> newRootRecords = new ArrayList<>();
                 newRootRecords.add(new NodeRecord(bestNode.getNodeRecords(),bestNode.getNodeId()));
                 newRootRecords.add(new NodeRecord(splitNode.getNodeRecords(),splitNode.getNodeId()));
                 Node newRoot = new Node(1,++totalHeight,newRootRecords);
+                root = newRoot;
                 FilesHandler.updateIndexFileBlock(newRoot,true);
             }
 

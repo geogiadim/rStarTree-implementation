@@ -92,6 +92,7 @@ public class Main {
         node = FilesHandler.readNodeInIndexFile(blockId);
 
         if (node!= null){
+            System.out.println("Node Id: "+node.getNodeId() + " ,tree level: " + node.getLevelInRstarTree());
             for (NodeRecord nodeRecord: node.getNodeRecords()){
                 System.out.println(nodeRecord.getChildNodeId() + " , " +nodeRecord.getRecordIdPointer() );
             }
