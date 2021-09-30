@@ -20,11 +20,10 @@ public class Main {
         printIndexMetaData();
         System.out.println("------------------------------------");
         System.out.println("------------------------------------");
-        printSpecificNode(1);
-        System.out.println("------------------------------------");
-        printSpecificNode(2);
-        System.out.println("------------------------------------");
-        printSpecificNode(3);
+        for (int i=1; i<= FilesHandler.getTotalNodesInIndexFile();i++){
+            printSpecificNode(i);
+            System.out.println("------------------------------------");
+        }
     }
 
     /**

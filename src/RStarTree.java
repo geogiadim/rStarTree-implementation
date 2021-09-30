@@ -75,8 +75,9 @@ public class RStarTree {
      */
     private Node chooseSubTree(NodeRecord newNodeRecord, Node node){
         // CS2 If N is a leaf return N
-        if (node.getLevelInRstarTree() == LEAF_HEIGHT )
+        if (node.getLevelInRstarTree() == LEAF_HEIGHT ){
             return node;
+        }
         // Choose the entry in the node whose rectangle needs least overlap enlargement to include the new data rectangle
         // Resolve ties by choosing the entry whose rectangle needs least area enlargement,
         // then the entry with the rectangle of smallest area
@@ -93,7 +94,7 @@ public class RStarTree {
         // If the child pointers in N do not point to leaves: [determine the minimum area cost],
         // choose the leaf in N whose rectangle needs least area enlargement to include the new data
         // rectangle. Resolve ties by choosing the leaf with the rectangle of smallest area
-        else if (node.getLevelInRstarTree() > 2 && node.getLevelInRstarTree() < totalHeight){
+        else if (node.getLevelInRstarTree() > 2 && node.getLevelInRstarTree() <= totalHeight){
             ArrayList<NodeRecord> nodeRecords = node.getNodeRecords();
             NodeRecord bestNodeRecord = findLeastAreaEnlargement(newNodeRecord, nodeRecords);
 
@@ -217,7 +218,7 @@ public class RStarTree {
      */
     private void overflowTreatment(Node bestNode, NodeRecord newNodeRecord){
         int nodeLevel = bestNode.getLevelInRstarTree();
-        if (nodeLevel != this.root.getLevelInRstarTree() && !overflowCalledInLevel[nodeLevel - 1]){
+        if (nodeLevel != this.root.getLevelInRstarTree() && overflowCalledInLevel[nodeLevel - 1]){
             overflowCalledInLevel[nodeLevel - 1] = true;
 
             //reInsert(bestNode, newNodeRecord);
@@ -225,12 +226,13 @@ public class RStarTree {
         else{
             ArrayList<NodeRecord> splitNodeRecords = bestNode.getNodeRecords();
             splitNodeRecords.add(newNodeRecord);
-            ArrayList<Node> newNodes = split(splitNodeRecords);
+            int levelToAdd = bestNode.getLevelInRstarTree();
+            ArrayList<Node> newNodes = split(splitNodeRecords, bestNode.getNodeId(),levelToAdd);
             bestNode = newNodes.get(0);
             Node splitNode = newNodes.get(1);
             // if root split occurred
             if (bestNode.getNodeId() == 1){
-                bestNode.setNodeId(bestNode.getNodeId()+1);
+                bestNode.setNodeId(FilesHandler.getTotalNodesInIndexFile()+1);
                 FilesHandler.writeIndexFileBlock(bestNode);
                 splitNode.setNodeId(splitNode.getNodeId()+1);
                 FilesHandler.writeIndexFileBlock(splitNode);
@@ -238,7 +240,8 @@ public class RStarTree {
                 ArrayList<NodeRecord> newRootRecords = new ArrayList<>();
                 newRootRecords.add(new NodeRecord(bestNode.getNodeRecords(),bestNode.getNodeId()));
                 newRootRecords.add(new NodeRecord(splitNode.getNodeRecords(),splitNode.getNodeId()));
-                Node newRoot = new Node(1,++totalHeight,newRootRecords);
+                totalHeight = totalHeight +1;
+                Node newRoot = new Node(1,totalHeight,newRootRecords);
                 root = newRoot;
                 FilesHandler.updateIndexFileBlock(newRoot,true);
             }
@@ -246,9 +249,32 @@ public class RStarTree {
                 FilesHandler.updateIndexFileBlock(bestNode,false);
                 FilesHandler.writeIndexFileBlock(splitNode);
 
+                int parentNodeId = 0;
+                for (int blockPointer = 1; blockPointer<= FilesHandler.getTotalNodesInIndexFile(); blockPointer++) {
+                    Node node = FilesHandler.readNodeInIndexFile(blockPointer);
+                    if (node != null) {
+                        for (NodeRecord record : node.getNodeRecords()){
+                            if (record.getChildNodeId() == bestNode.getNodeId()){
+                                parentNodeId = blockPointer;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 // Propagate the overflow treatment upwards, to fit the entry on the caller's level Node
-//                parentEntry.adjustBBToFitEntries(childNode.getEntries());
-//                FilesHandler.updateIndexFileBlock(parentNode,false);
+                Node parentNode = FilesHandler.readNodeInIndexFile(parentNodeId);
+                if (parentNode!= null){
+                    if (parentNode.getNodeRecords() != null) {
+                        if (parentNode.getNodeRecords().size() < Node.getMaxNodeRecords()) {
+                            parentNode.addRecordInNode(new NodeRecord(splitNode.getNodeRecords(), splitNode.getNodeId()));
+                            FilesHandler.updateIndexFileBlock(parentNode, false);
+                        } else if (parentNode.getNodeRecords().size() == Node.getMaxNodeRecords()){
+                            overflowTreatment(parentNode, new NodeRecord(splitNode.getNodeRecords(), splitNode.getNodeId()));
+                        }
+                    }
+                }
+
             }
 
         }
@@ -258,9 +284,7 @@ public class RStarTree {
      *  Reinsert algorithm of R star tree
      */
     private void reInsert(Node node, NodeRecord newNodeRecord){
-//
-//        for (NodeRecord nodeRecord : removedNodeRecords)
-//            insert(nodeRecord,LEAF_HEIGHT);
+
 
 
     }
@@ -268,11 +292,11 @@ public class RStarTree {
     /**
      *  Split algorithm of R star tree
      */
-    private ArrayList<Node> split(ArrayList<NodeRecord> nodeRecords){
+    private ArrayList<Node> split(ArrayList<NodeRecord> nodeRecords, long bestNodeId ,int levelToAdd){
         // S1 Invoke chooseSplitAxis to determine the axis, perpendicular to which the split is performed
         ArrayList<Distribution> splitAxis = chooseSplitAxis(nodeRecords);
         // S2 Invoke chooseSplitIndex to determine the best distribution into two groups along that axis
-        return chooseSplitIndex(splitAxis);
+        return chooseSplitIndex(splitAxis, bestNodeId,levelToAdd);
     }
 
     /**
@@ -366,7 +390,7 @@ public class RStarTree {
     /**
      * returns the two nodes that created by split of parent node
      */
-    private ArrayList<Node> chooseSplitIndex(ArrayList<Distribution> splitAxisDistros){
+    private ArrayList<Node> chooseSplitIndex(ArrayList<Distribution> splitAxisDistros, long bestNodeId, int levelToAdd){
         double minOverlapValue = Double.MAX_VALUE;
         double minAreaValue = Double.MAX_VALUE;
 
@@ -399,8 +423,8 @@ public class RStarTree {
         DistroGroup distroGroupB = splitAxisDistros.get(bestIndex).getSecondGroup();
         ArrayList<NodeRecord> firsGroupRecords = distroGroupA.getNodeRecords();
         ArrayList<NodeRecord> secondGroupRecords = distroGroupB.getNodeRecords();
-        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile(), totalHeight, firsGroupRecords));
-        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+1, totalHeight, secondGroupRecords));
+        splitNodes.add(new Node(bestNodeId, levelToAdd, firsGroupRecords));
+        splitNodes.add(new Node(FilesHandler.getTotalNodesInIndexFile()+1, levelToAdd, secondGroupRecords));
 
         return splitNodes;
     }
