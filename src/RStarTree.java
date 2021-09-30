@@ -219,7 +219,8 @@ public class RStarTree {
         int nodeLevel = bestNode.getLevelInRstarTree();
         if (nodeLevel != this.root.getLevelInRstarTree() && !overflowCalledInLevel[nodeLevel - 1]){
             overflowCalledInLevel[nodeLevel - 1] = true;
-            reInsert();
+
+            //reInsert(bestNode, newNodeRecord);
         }
         else{
             ArrayList<NodeRecord> splitNodeRecords = bestNode.getNodeRecords();
@@ -241,6 +242,14 @@ public class RStarTree {
                 root = newRoot;
                 FilesHandler.updateIndexFileBlock(newRoot,true);
             }
+            else {
+                FilesHandler.updateIndexFileBlock(bestNode,false);
+                FilesHandler.writeIndexFileBlock(splitNode);
+
+                // Propagate the overflow treatment upwards, to fit the entry on the caller's level Node
+//                parentEntry.adjustBBToFitEntries(childNode.getEntries());
+//                FilesHandler.updateIndexFileBlock(parentNode,false);
+            }
 
         }
     }
@@ -248,7 +257,11 @@ public class RStarTree {
     /**
      *  Reinsert algorithm of R star tree
      */
-    private void reInsert(){
+    private void reInsert(Node node, NodeRecord newNodeRecord){
+//
+//        for (NodeRecord nodeRecord : removedNodeRecords)
+//            insert(nodeRecord,LEAF_HEIGHT);
+
 
     }
 
